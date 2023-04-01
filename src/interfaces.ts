@@ -6,7 +6,7 @@
  * ```
  */
 export interface IRequest {
-  headers?: IRequestHeaders;
+  headers: IRequestHeaders;
 }
 
 /**
@@ -18,7 +18,7 @@ export interface IRequest {
  * The ``authorization`` string should come in formar ``Bearer [token]``
  */
 export interface IRequestHeaders {
-  authorization: string;
+  authorization?: string;
 }
 
 /**
