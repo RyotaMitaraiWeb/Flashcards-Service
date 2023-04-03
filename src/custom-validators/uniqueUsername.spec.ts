@@ -2,9 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken, TypeOrmModule } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { validate } from 'class-validator';
 import { UniqueUsernameValidator } from './uniqueUsername';
-import { Account } from '../accounts/entities/account.entity';
+import { Account } from '../modules/accounts/entities/account.entity';
 
 describe('UniqueUsername validator', () => {
   let repository: Repository<Account>;

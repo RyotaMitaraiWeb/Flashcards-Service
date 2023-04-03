@@ -2,18 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
-import { AccountsModule } from '../src/accounts/accounts.module';
-import { AccountsController } from '../src/accounts/accounts.controller';
-import { AccountsService } from '../src/accounts/accounts.service';
+import { AccountsModule } from '../src/modules/accounts/accounts.module';
+import { AccountsController } from '../src/modules/accounts/accounts.controller';
+import { AccountsService } from '../src/modules/accounts/accounts.service';
 import { IAuthBody, IAuthErrorResponse, IAuthSuccessResponse } from './util/interfaces';
 import { JwtService } from '@nestjs/jwt';
 import { validationMessages } from '../src/constants/validationMessages';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Account } from '../src/accounts/entities/account.entity';
 import { UniqueUsernameValidator } from '../src/custom-validators/uniqueUsername';
 import { useContainer } from 'class-validator';
-import { AppModule } from '../src/app.module';
+import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
 
 describe('Account controller (E2E)', () => {
   let app: INestApplication;
@@ -230,7 +227,7 @@ describe('Account controller (E2E)', () => {
         .expect(HttpStatus.FORBIDDEN);
 
       const errorRes: IAuthErrorResponse = failedRegister.body;
-      expect(errorRes.message.includes(validationMessages.invalidActions.isNotLoggedOut)).toBe(true);
+      expect(errorRes.message.includes(invalidActionsMessages.isNotLoggedOut)).toBe(true);
     });
   });
 
