@@ -103,6 +103,20 @@ If the password is wrong or the username does not exist, the server will return 
 ```
 The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
 
+### Logout
+To log out a user, send a DELETE request to ``/account/logout`` with a valid JWT attached to the ``Authorization`` header.
+
+A successful logout returns status code 204 with no payload. The token that was sent to the server becomes unusable for future authorized requests.
+
+An unsuccessful logout returns the following response:
+```json
+{
+  "statusCode": 401,
+  "message": ["You must be logged in to perform this action"],
+  "error": "Unauthorized"
+}
+```
+
 ## Custom validators
 ### ``UniqueUsername``
 This validator checks if the username is already taken by another user.
@@ -127,6 +141,9 @@ The string is typically passed as ``Bearer [token]``, with the function extracti
 ## Guards
 ### IsGuest
 This guard aborts requests that have a valid JWT attached to the ``Authorization`` header.
+
+### IsLoggedIn
+This guard aborts requests that do not have a valid JWT attached to the ``Authorization`` header.
 
 ## Constants
 Those are objects that contain some constant values, such as validation rule values, error messages, and etc.
