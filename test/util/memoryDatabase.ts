@@ -1,6 +1,6 @@
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource, DataSourceOptions } from 'typeorm';
-import { Account } from '../../src/accounts/entities/account.entity';
+import { Account } from '../../src/modules/accounts/entities/account.entity';
 
 export const options: DataSourceOptions = {
   type: 'better-sqlite3',
