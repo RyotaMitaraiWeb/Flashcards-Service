@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,6 +6,9 @@ import { RegisterDto } from './dto/register-dto';
 import { UserDto } from './dto/user-dto';
 import { Account } from './entities/account.entity';
 import * as bcrypt from 'bcrypt';
+import { LoginDto } from './dto/login-dto';
+import { HttpFormattedException } from '../../util/HttpFormattedException';
+import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 
 @Injectable()
 export class AccountsService {
@@ -36,6 +39,26 @@ export class AccountsService {
     return user;
   }
 
+  async login(loginDto: LoginDto): Promise<UserDto> {
+    const { username, password } = loginDto;
+    try {
+      const account = await this.findUserByUsernameOrThrow(username);
+      await this.checkIfPasswordMatchesOrThrow(account, password);
+
+      const userDto = new UserDto();
+      userDto.id = account.id;
+      userDto.username = account.username;
+
+      return userDto;
+    } catch (err: any) {
+      throw new HttpFormattedException({
+        statusCode: HttpStatus.UNAUTHORIZED,
+        message: [invalidActionsMessages.failedLogin],
+        error: 'Unauthorized',
+      }, HttpStatus.UNAUTHORIZED);
+    }
+  }
+
   /**
    * Generates a JWT of the user.
    * @param userDto - the user to be used for token generation
@@ -53,5 +76,33 @@ export class AccountsService {
     });
 
     return token;
+  }
+
+  /**
+   * Searches the database for a user with the given username and returns that user.
+   * Throws an error if no such user exists.
+   * @param username 
+   * @returns a Promise that resolves to the user's ``Account``
+   */
+  private async findUserByUsernameOrThrow(username: string): Promise<Account> {
+    const user = await this.accountRepository.findOneBy({ username });
+    if (!user) {
+      throw new Error('User does not exist');
+    }
+
+    return user;
+  }
+
+  /**
+   * Compares the given input to the user's hashed password. Throws an error if the passwords
+   * do not match.
+   * @param user an ``Account`` entity
+   * @param password the input to be compared to the given ``user``'s hashed password
+   */
+  private async checkIfPasswordMatchesOrThrow(user: Account, password: string) {
+    const passwordMatches = await bcrypt.compare(password, user.password);
+    if (!passwordMatches) {
+      throw new Error('Password does not exist');
+    }
   }
 }

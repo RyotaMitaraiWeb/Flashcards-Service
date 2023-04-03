@@ -17,6 +17,8 @@ describe('Account controller (E2E)', () => {
   let server: any;
 
   let registerEndpoint = '/accounts/register';
+  let loginEndpoint = '/accounts/login';
+
   process.env.JWT_SECRET = 'wehmwopehnwpeoinw';
 
   beforeEach(async () => {
@@ -229,6 +231,95 @@ describe('Account controller (E2E)', () => {
       const errorRes: IAuthErrorResponse = failedRegister.body;
       expect(errorRes.message.includes(invalidActionsMessages.isNotLoggedOut)).toBe(true);
     });
+  });
+
+  describe('/login (POST)', () => {
+
+    it('logs in successfully', async () => {
+      const credentials: IAuthBody = {
+        username: 'ryota1',
+        password: '123456',
+      };
+
+      const result = await request(server)
+      .post(registerEndpoint)
+      .send(credentials);
+
+      const res = await request(server)
+        .post(loginEndpoint)
+        .send(credentials)
+        .expect(HttpStatus.CREATED);
+
+      const body: IAuthSuccessResponse = res.body;
+      const jwt = body.token;
+      expect(typeof jwt).toBe('string');
+    });
+
+    it('Returns 403 if a token is detected in the Authorization header', async () => {
+      const credentials: IAuthBody = {
+        username: 'ryota1',
+        password: '123456',
+      };
+
+      const register = await request(server)
+        .post(registerEndpoint)
+        .send(credentials);
+
+      const registerRes: IAuthSuccessResponse = register.body;
+      const token = `Bearer ${registerRes.token}`;
+      
+      const result = await request(server)
+        .post(loginEndpoint)
+        .send(credentials)
+        .set('Authorization', token)
+        .expect(HttpStatus.FORBIDDEN);
+
+      const res: IAuthErrorResponse = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedOut)).toBe(true);
+    });
+  });
+
+  it('Returns 401 for wrong password', async () => {
+    const credentials: IAuthBody = {
+      username: 'ryota1',
+      password: '123456',
+    };
+
+    const wrongPasswordBody: IAuthBody = {
+      username: 'ryota1',
+      password: '1',
+    };
+
+    await request(server)
+      .post(registerEndpoint)
+      .send(credentials);
+
+    const result = await request(server)
+      .post(loginEndpoint)
+      .send(wrongPasswordBody)
+      .expect(HttpStatus.UNAUTHORIZED)
+
+    const res: IAuthErrorResponse = result.body;
+    expect(res.message.includes(invalidActionsMessages.failedLogin)).toBe(true);
+  });
+
+  afterEach(async () => {
+    await app.close();
+  });
+
+  it('Returns 401 for non-existant username', async () => {
+    const nonExistantUserBody: IAuthBody = {
+      username: '1',
+      password: '123456',
+    };
+
+    const result = await request(server)
+      .post(loginEndpoint)
+      .send(nonExistantUserBody)
+      .expect(HttpStatus.UNAUTHORIZED)
+
+    const res: IAuthErrorResponse = result.body;
+    expect(res.message.includes(invalidActionsMessages.failedLogin)).toBe(true);
   });
 
   afterEach(async () => {

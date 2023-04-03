@@ -7,6 +7,7 @@ import { AccountsService } from './accounts.service';
 import { RegisterDto } from './dto/register-dto';
 import { UserDto } from './dto/user-dto';
 import { Account } from './entities/account.entity';
+import { LoginDto } from './dto/login-dto';
 
 describe('AccountsController', () => {
   let controller: AccountsController;
@@ -46,6 +47,22 @@ describe('AccountsController', () => {
       jest.spyOn(service, 'register').mockImplementation(async () => { throw new Error() });
 
       expect(() => controller.register(new RegisterDto())).rejects.toThrow();
+    });
+  });
+
+  describe('/login (POST)', () => {
+    it('Returns a token for a successful login', async () => {
+      jest.spyOn(service, 'login').mockImplementation(async () => new UserDto());
+      jest.spyOn(service, 'generateToken').mockImplementation(async () => 'a');
+
+      const result = await controller.login(new LoginDto());
+      expect(result.token).toBe('a');
+    });
+
+    it('Throws an error if login method throws an error', async () => {
+      jest.spyOn(service, 'login').mockImplementation(async () => { throw new Error() });
+
+      expect(() => controller.login(new LoginDto())).rejects.toThrow();
     });
   });
 });

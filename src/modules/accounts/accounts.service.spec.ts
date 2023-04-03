@@ -7,6 +7,9 @@ import { UserDto } from './dto/user-dto';
 import { Account } from './entities/account.entity';
 import { JwtService } from '@nestjs/jwt';
 import { validate } from 'class-validator';
+import { LoginDto } from './dto/login-dto';
+import * as bcrypt from 'bcrypt';
+import { HttpFormattedException } from '../../util/HttpFormattedException';
 
 describe('AccountsService', () => {
   let service: AccountsService;
@@ -89,6 +92,59 @@ describe('AccountsService', () => {
       const token = await service.generateToken(user);
 
       expect(token).toBe(result);
+    });
+  });
+
+  describe('login', () => {
+    it('Returns a UserDto when the login is successful', async () => {
+      const expectedUser = new UserDto();
+      expectedUser.id = 1;
+      expectedUser.username = 'ryota1';
+
+      jest.spyOn(repository, 'findOneBy').mockImplementation(async () => {
+        const account = new Account();
+        account.id = expectedUser.id;
+        account.username = expectedUser.username;
+        account.password = '123456';
+
+        return account;
+      });
+
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+
+      const login = new LoginDto();
+      login.username = expectedUser.username;
+      login.password = '123456';
+
+      const loggedInUser = await service.login(login);
+      expect(loggedInUser).toEqual(expectedUser);
+    });
+
+    it('Throws an error if "findOneById" returns null', async () => {
+      jest.spyOn(repository, 'findOneById').mockImplementation(async () => null);
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+
+      const login = new LoginDto();
+      login.username = 'ryota1';
+      login.password = '123456';
+      expect(() => service.login(login)).rejects.toThrowError(HttpFormattedException);
+    });
+
+    it('Throws an error if bcrypt.compare returns false', async () => {
+      jest.spyOn(repository, 'findOneBy').mockImplementation(async () => {
+        const account = new Account();
+        account.id = 1;
+        account.username = 'ryota1';
+        account.password = '123456';
+
+        return account;
+      });
+      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
+
+      const login = new LoginDto();
+      login.username = 'ryota1';
+      login.password = 'wrongpassword';
+      expect(() => service.login(login)).rejects.toThrowError(HttpFormattedException);
     });
   });
 });
