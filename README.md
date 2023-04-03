@@ -72,6 +72,37 @@ If there are validation errors, the server will return a 400 error. If there is 
 
 The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
 
+
+### Login
+
+To log in a user (and thereby create a session), send a POST request to ``/account/login`` with the following JSON:
+```json
+{
+  "username": "insert your username",
+  "password": "insert your password"
+}
+```
+
+Make sure that the ``Authorization`` header does not contain any valid JWTs, otherwise, the request won't go through.
+
+Upon a successful authentication, you will receive the following JSON response with a status code of 201:
+```json
+{
+  "token": "your token"
+}
+```
+
+If the password is wrong or the username does not exist, the server will return the following JSON with status code 401
+
+```json
+{
+  "statusCode": 401,
+  "message": ["Wrong username or password"],
+  "error": "Unauthorized"
+}
+```
+The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
+
 ## Custom validators
 ### ``UniqueUsername``
 This validator checks if the username is already taken by another user.

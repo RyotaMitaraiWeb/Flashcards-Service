@@ -39,6 +39,11 @@ export class AccountsService {
     return user;
   }
 
+  /**
+   * Generates a ``UserDto`` if provided with correct credentials or throws an error.
+   * @param loginDto the credentials of the given request
+   * @returns a Promise that resolves to a UserDto if the login is successful.
+   */
   async login(loginDto: LoginDto): Promise<UserDto> {
     const { username, password } = loginDto;
     try {
