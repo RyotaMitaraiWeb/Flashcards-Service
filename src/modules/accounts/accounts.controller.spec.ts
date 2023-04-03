@@ -8,6 +8,7 @@ import { RegisterDto } from './dto/register-dto';
 import { UserDto } from './dto/user-dto';
 import { Account } from './entities/account.entity';
 import { LoginDto } from './dto/login-dto';
+import { IRequestHeaders } from '../../interfaces';
 
 describe('AccountsController', () => {
   let controller: AccountsController;
@@ -63,6 +64,19 @@ describe('AccountsController', () => {
       jest.spyOn(service, 'login').mockImplementation(async () => { throw new Error() });
 
       expect(() => controller.login(new LoginDto())).rejects.toThrow();
+    });
+  });
+
+  describe('/logout', () => {
+    it('Returns an empty object upon a successful blacklist', async () => {
+      jest.spyOn(service, 'logout').mockImplementation(() => {});
+
+      const headers: IRequestHeaders = {
+        authorization: 'Bearer a',
+      };
+
+      const result = controller.logout(headers);
+      expect(result).toEqual({});
     });
   });
 });

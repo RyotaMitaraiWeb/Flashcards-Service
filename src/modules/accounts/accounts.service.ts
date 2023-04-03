@@ -9,6 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login-dto';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
+import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
+import { jwtBlacklist } from './jwtBlacklist';
 
 @Injectable()
 export class AccountsService {
@@ -62,6 +64,16 @@ export class AccountsService {
         error: 'Unauthorized',
       }, HttpStatus.UNAUTHORIZED);
     }
+  }
+
+  /**
+   * Adds the provided JWT to the ``jwtBlacklist``. This makes the token unusable for authorized
+   * requests.
+   * @param bearerToken a JWT in the format ``Bearer [token]``
+   */
+  logout(bearerToken: string) {
+    const jwt = extractTokenFromHeader(bearerToken);
+    jwtBlacklist.add(jwt);
   }
 
   /**

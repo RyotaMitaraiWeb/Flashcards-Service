@@ -10,6 +10,8 @@ import { validate } from 'class-validator';
 import { LoginDto } from './dto/login-dto';
 import * as bcrypt from 'bcrypt';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
+import * as extractTokenFromHeader from '../../util/extractTokenFromHeader/extractTokenFromHeader';
+import { jwtBlacklist } from './jwtBlacklist';
 
 describe('AccountsService', () => {
   let service: AccountsService;
@@ -145,6 +147,16 @@ describe('AccountsService', () => {
       login.username = 'ryota1';
       login.password = 'wrongpassword';
       expect(() => service.login(login)).rejects.toThrowError(HttpFormattedException);
+    });
+  });
+
+  describe('logout', () => {
+    it('Adds a token to the blacklist successfully', async () => {
+      const mockToken = 'Bearer a';
+      const expectedToken = 'a';
+      jest.spyOn(extractTokenFromHeader, 'extractTokenFromHeader').mockImplementation(() => expectedToken);
+      service.logout(mockToken);
+      expect(jwtBlacklist.has(expectedToken)).toBe(true);
     });
   });
 });

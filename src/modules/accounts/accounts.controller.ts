@@ -1,9 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, Response, HttpCode, Headers } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { IsGuestGuard } from '../../guards/isGuest';
 import { AccountsService } from './accounts.service';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
+import { IRequest, IRequestHeaders } from '../../interfaces';
+import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
+import { log } from 'console';
+import { jwtBlacklist } from './jwtBlacklist';
+import { IsLoggedInGuard } from '../../guards/isLoggedIn';
 
 @ApiBearerAuth('jwt')
 @Controller('accounts')
@@ -30,5 +35,16 @@ export class AccountsController {
     const user = await this.accountsService.login(loginDto);
     const token = await this.accountsService.generateToken(user);
     return { token };
+  }
+
+  @Delete('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'User logged out successfully '})
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT'})
+  @UseGuards(IsLoggedInGuard)
+  logout(@Headers() headers: IRequestHeaders) {
+    const bearerToken = headers.authorization;
+    this.accountsService.logout(bearerToken);
+    return {};
   }
 }

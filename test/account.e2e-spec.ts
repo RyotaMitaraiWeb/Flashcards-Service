@@ -18,6 +18,7 @@ describe('Account controller (E2E)', () => {
 
   let registerEndpoint = '/accounts/register';
   let loginEndpoint = '/accounts/login';
+  let logoutEndpoint = '/accounts/logout';
 
   process.env.JWT_SECRET = 'wehmwopehnwpeoinw';
 
@@ -53,7 +54,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.CREATED);
-      
+
       const result: IAuthSuccessResponse = res.body;
       expect(typeof result.token).toBe('string');
     });
@@ -68,7 +69,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message).toEqual([validationMessages.account.username.isTooShort]);
     });
@@ -83,7 +84,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message).toEqual([validationMessages.account.username.isTooLong]);
     });
@@ -98,7 +99,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message).toEqual([validationMessages.account.username.isNotAlphanumeric]);
     });
@@ -113,7 +114,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message).toEqual([validationMessages.account.password.isTooShort]);
     });
@@ -128,7 +129,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message.includes(validationMessages.account.username.isNotString)).toBe(true);
     });
@@ -143,7 +144,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message.includes(validationMessages.account.password.isNotString)).toBe(true);
     });
@@ -174,8 +175,8 @@ describe('Account controller (E2E)', () => {
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
 
-        const result: IAuthErrorResponse = res.body;
-        expect(result.message.includes(validationMessages.account.username.alreadyExists)).toBe(true);
+      const result: IAuthErrorResponse = res.body;
+      expect(result.message.includes(validationMessages.account.username.alreadyExists)).toBe(true);
     });
 
     it('Returns bad request when the password property is missing', async () => {
@@ -199,7 +200,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
         .expect(HttpStatus.BAD_REQUEST);
-      
+
       const result: IAuthErrorResponse = res.body;
       expect(result.message.length).toBe(3);
       expect(result.message.includes(validationMessages.account.username.isTooShort)).toBe(true);
@@ -241,8 +242,8 @@ describe('Account controller (E2E)', () => {
       };
 
       const result = await request(server)
-      .post(registerEndpoint)
-      .send(credentials);
+        .post(registerEndpoint)
+        .send(credentials);
 
       const res = await request(server)
         .post(loginEndpoint)
@@ -266,7 +267,7 @@ describe('Account controller (E2E)', () => {
 
       const registerRes: IAuthSuccessResponse = register.body;
       const token = `Bearer ${registerRes.token}`;
-      
+
       const result = await request(server)
         .post(loginEndpoint)
         .send(credentials)
@@ -282,38 +283,86 @@ describe('Account controller (E2E)', () => {
         username: 'ryota1',
         password: '123456',
       };
-  
+
       const wrongPasswordBody: IAuthBody = {
         username: 'ryota1',
         password: '1',
       };
-  
+
       await request(server)
         .post(registerEndpoint)
         .send(credentials);
-  
+
       const result = await request(server)
         .post(loginEndpoint)
         .send(wrongPasswordBody)
         .expect(HttpStatus.UNAUTHORIZED)
-  
+
       const res: IAuthErrorResponse = result.body;
       expect(res.message.includes(invalidActionsMessages.failedLogin)).toBe(true);
     });
-  
+
     it('Returns 401 for non-existant username', async () => {
       const nonExistantUserBody: IAuthBody = {
         username: '1',
         password: '123456',
       };
-  
+
       const result = await request(server)
         .post(loginEndpoint)
         .send(nonExistantUserBody)
         .expect(HttpStatus.UNAUTHORIZED)
-  
+
       const res: IAuthErrorResponse = result.body;
       expect(res.message.includes(invalidActionsMessages.failedLogin)).toBe(true);
+    });
+  });
+
+  describe('/logout (DELETE)', () => {
+    let token = '';
+
+    beforeEach(async () => {
+      const registerBody: IAuthBody = {
+        username: 'ryota1',
+        password: '123456',
+      };
+
+      const registerResult = await request(server)
+        .post(registerEndpoint)
+        .send(registerBody);
+
+      const registerResponse: IAuthSuccessResponse = registerResult.body;
+      token = `Bearer ${registerResponse.token}`;
+    });
+
+    it('Returns 204 for successful logout', async () => {
+      await request(server)
+        .del(logoutEndpoint)
+        .set('Authorization', token)
+        .expect(HttpStatus.NO_CONTENT);
+    });
+
+    it('Returns 401 if a valid JWT is not provided', async () => {
+      const result = await request(server)
+        .del(logoutEndpoint)
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const res: IAuthErrorResponse = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+
+    it('Returns 401 if the JWT is blacklisted', async () => {
+      await request(server)
+        .del(logoutEndpoint)
+        .set('Authorization', token);
+
+      const result = await request(server)
+        .del(logoutEndpoint)
+        .set('Authorization', token)
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const res: IAuthErrorResponse = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
     });
   });
 
