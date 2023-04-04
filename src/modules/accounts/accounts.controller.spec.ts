@@ -35,13 +35,27 @@ describe('AccountsController', () => {
     expect(controller).toBeDefined();
   });
 
-  describe('/register (POST)', () => {
+  describe('register', () => {
     it('Returns a token for successful registration', async () => {
-      jest.spyOn(service, 'register').mockImplementation(async () => new UserDto());
+      const expectedUser = new UserDto();
+      expectedUser.id = 1;
+      expectedUser.username = 'a';
+
+      jest.spyOn(service, 'register').mockImplementation(async () => {
+        const user = new UserDto();
+        user.id = expectedUser.id;
+        user.username = expectedUser.username;
+        return user;
+      });
+
       jest.spyOn(service, 'generateToken').mockImplementation(async () => 'a');
 
       const result = await controller.register(new RegisterDto());
-      expect(result.token).toBe('a');
+      expect(result).toEqual({
+        token: 'a',
+        user: expectedUser,
+      });
+      
     });
 
     it('Throws an error if registration throws an error', async () => {
@@ -51,13 +65,25 @@ describe('AccountsController', () => {
     });
   });
 
-  describe('/login (POST)', () => {
+  describe('login', () => {
     it('Returns a token for a successful login', async () => {
-      jest.spyOn(service, 'login').mockImplementation(async () => new UserDto());
+      const expectedUser = new UserDto();
+      expectedUser.id = 1;
+      expectedUser.username = 'a';
+
+      jest.spyOn(service, 'login').mockImplementation(async () => {
+        const user = new UserDto();
+        user.id = expectedUser.id;
+        user.username = expectedUser.username;
+        return user;
+      });
       jest.spyOn(service, 'generateToken').mockImplementation(async () => 'a');
 
       const result = await controller.login(new LoginDto());
-      expect(result.token).toBe('a');
+      expect(result).toEqual({
+        token: 'a',
+        user: expectedUser,
+      });
     });
 
     it('Throws an error if login method throws an error', async () => {

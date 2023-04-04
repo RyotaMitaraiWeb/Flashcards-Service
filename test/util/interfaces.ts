@@ -1,3 +1,5 @@
+import { ICreatedSession } from '../../src/interfaces';
+
 /**
  * ```typescript
  * interface IAuthBody {
@@ -10,18 +12,6 @@
 export interface IAuthBody {
   username: string;
   password: string;
-}
-
-/**
- * ```typescript
- * interface IAuthSuccessResponse {
-    token: string;
-}
- * ```
- * This is used to type the response from a successful register/login/session request during tests.
- */
-export interface IAuthSuccessResponse {
-  token: string;
 }
 
 /**

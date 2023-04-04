@@ -5,12 +5,13 @@ import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
 import { AccountsModule } from '../src/modules/accounts/accounts.module';
 import { AccountsController } from '../src/modules/accounts/accounts.controller';
 import { AccountsService } from '../src/modules/accounts/accounts.service';
-import { IAuthBody, IAuthErrorResponse, IAuthSuccessResponse } from './util/interfaces';
+import { IAuthBody, IAuthErrorResponse } from './util/interfaces';
 import { JwtService } from '@nestjs/jwt';
 import { validationMessages } from '../src/constants/validationMessages';
 import { UniqueUsernameValidator } from '../src/custom-validators/uniqueUsername';
 import { useContainer } from 'class-validator';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
+import { ICreatedSession } from '../src/interfaces';
 
 describe('Account controller (E2E)', () => {
   let app: INestApplication;
@@ -55,8 +56,9 @@ describe('Account controller (E2E)', () => {
         .send(body)
         .expect(HttpStatus.CREATED);
 
-      const result: IAuthSuccessResponse = res.body;
+      const result: ICreatedSession = res.body;
       expect(typeof result.token).toBe('string');
+      expect(result.user).toEqual({ id: 1, username: body.username });
     });
 
     it('Fails to register when the username is too short', async () => {
@@ -218,7 +220,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(body)
 
-      const res: IAuthSuccessResponse = register.body;
+      const res: ICreatedSession = register.body;
       const token = res.token;
 
       const failedRegister = await request(server)
@@ -250,9 +252,10 @@ describe('Account controller (E2E)', () => {
         .send(credentials)
         .expect(HttpStatus.CREATED);
 
-      const body: IAuthSuccessResponse = res.body;
+      const body: ICreatedSession = res.body;
       const jwt = body.token;
       expect(typeof jwt).toBe('string');
+      expect(body.user).toEqual({ id: 1, username: credentials.username });
     });
 
     it('Returns 403 if a token is detected in the Authorization header', async () => {
@@ -265,7 +268,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(credentials);
 
-      const registerRes: IAuthSuccessResponse = register.body;
+      const registerRes: ICreatedSession = register.body;
       const token = `Bearer ${registerRes.token}`;
 
       const result = await request(server)
@@ -331,7 +334,7 @@ describe('Account controller (E2E)', () => {
         .post(registerEndpoint)
         .send(registerBody);
 
-      const registerResponse: IAuthSuccessResponse = registerResult.body;
+      const registerResponse: ICreatedSession = registerResult.body;
       token = `Bearer ${registerResponse.token}`;
     });
 
