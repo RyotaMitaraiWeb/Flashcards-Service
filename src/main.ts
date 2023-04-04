@@ -21,6 +21,7 @@ async function bootstrap() {
       .setDescription('API for Flashcards application')
       .setVersion('1.0')
       .addTag('flashcards')
+      .addTag('accounts', 'Authentication endpoints')
       .addBearerAuth({
         description: 'Bearer JWT',
         name: 'Authorization',

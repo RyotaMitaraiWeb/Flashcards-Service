@@ -56,7 +56,11 @@ The following validations are applied when registering a user:
 Upon a successful registration, you will receive the following JSON response with a status code of 201:
 ```json
 {
-  "token": "your token"
+  "token": "your token",
+  "user": {
+    "id": "your id",
+    "username": "your username"
+  }
 }
 ```
 
@@ -88,7 +92,11 @@ Make sure that the ``Authorization`` header does not contain any valid JWTs, oth
 Upon a successful authentication, you will receive the following JSON response with a status code of 201:
 ```json
 {
-  "token": "your token"
+  "token": "your token",
+  "user": {
+    "id": "your id",
+    "username": "your username"
+  }
 }
 ```
 
@@ -109,6 +117,27 @@ To log out a user, send a DELETE request to ``/account/logout`` with a valid JWT
 A successful logout returns status code 204 with no payload. The token that was sent to the server becomes unusable for future authorized requests.
 
 An unsuccessful logout returns the following response:
+```json
+{
+  "statusCode": 401,
+  "message": ["You must be logged in to perform this action"],
+  "error": "Unauthorized"
+}
+```
+
+### Session
+To validate a session, send a POST request to ``/accounts/session`` with a JWT attached to the ``Authorization`` header in format ``Bearer [token]`` (where ``[token]`` is the JWT). If the JWT is valid, the server will respond with a status code 201 and the following response:
+```json
+{
+  "token": "your token",
+  "user": {
+    "id": "your id",
+    "username": "your username"
+  }
+}
+```
+
+An invalid JWT leads to the following response with status code 401:
 ```json
 {
   "statusCode": 401,
@@ -178,6 +207,23 @@ interface IHttpError {
 ```
 
 The ``IHttpError`` interface describes the standard format of error responses that are returned to the user.
+
+```typescript
+interface IUser {
+  id: number;
+  username: string;
+}
+```
+
+The ``IUser`` interface represents the ``user`` object, which is part of the response the server gives upon a successful authentication.
+
+```typescript
+interface ICreatedSession {
+  user: IUser;
+  token: string;
+}
+```
+The ``ICreatedSession`` interface represents the response that the server gives upon a successful authentication.
 
 ## License
 MIT

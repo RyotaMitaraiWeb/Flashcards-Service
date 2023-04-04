@@ -1,16 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, Response, HttpCode, Headers } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, Delete, UseGuards, HttpStatus, HttpCode, Headers } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsGuestGuard } from '../../guards/isGuest';
 import { AccountsService } from './accounts.service';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
-import { ICreatedSession, IRequest, IRequestHeaders, IUser } from '../../interfaces';
-import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
-import { log } from 'console';
-import { jwtBlacklist } from './jwtBlacklist';
+import { ICreatedSession, IRequestHeaders } from '../../interfaces';
 import { IsLoggedInGuard } from '../../guards/isLoggedIn';
 
 @ApiBearerAuth('jwt')
+@ApiTags('accounts')
 @Controller('accounts')
 export class AccountsController {
   constructor(private readonly accountsService: AccountsService) { }
