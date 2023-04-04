@@ -11,6 +11,7 @@ import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
 import { jwtBlacklist } from './jwtBlacklist';
+import { ICreatedSession, IUser } from '../../interfaces';
 
 @Injectable()
 export class AccountsService {
@@ -93,6 +94,15 @@ export class AccountsService {
     });
 
     return token;
+  }
+
+  async generateUserFromJWT(bearerToken: string): Promise<ICreatedSession> {
+    const token = extractTokenFromHeader(bearerToken);
+    const user: IUser = await this.jwtService.verifyAsync(token, {
+      secret: process.env.JWT_SECRET,
+    });
+    
+    return { user, token };
   }
 
   /**

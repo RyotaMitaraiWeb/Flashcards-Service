@@ -12,6 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import * as extractTokenFromHeader from '../../util/extractTokenFromHeader/extractTokenFromHeader';
 import { jwtBlacklist } from './jwtBlacklist';
+import { ICreatedSession, IUser } from '../../interfaces';
 
 describe('AccountsService', () => {
   let service: AccountsService;
@@ -157,6 +158,30 @@ describe('AccountsService', () => {
       jest.spyOn(extractTokenFromHeader, 'extractTokenFromHeader').mockImplementation(() => expectedToken);
       service.logout(mockToken);
       expect(jwtBlacklist.has(expectedToken)).toBe(true);
+    });
+  });
+
+  describe('checkSession', () => {
+    it('Generates an ICreatedSession object successfully', async () => {
+      const expectedUser: ICreatedSession = {
+        token: 'a',
+        user: {
+          id: 1,
+          username: 'a',
+        },
+      };
+
+      jest.spyOn(jwtService, 'verifyAsync').mockImplementation(async () => {
+        const user: IUser = { ...expectedUser.user }
+
+        return user;
+      });
+
+      jest.spyOn(extractTokenFromHeader, 'extractTokenFromHeader').mockImplementation(() => expectedUser.token);
+
+      const user = await service.generateUserFromJWT('Bearer a');
+      
+      expect(user).toEqual(expectedUser);
     });
   });
 });

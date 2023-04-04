@@ -4,7 +4,7 @@ import { IsGuestGuard } from '../../guards/isGuest';
 import { AccountsService } from './accounts.service';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
-import { ICreatedSession, IRequest, IRequestHeaders } from '../../interfaces';
+import { ICreatedSession, IRequest, IRequestHeaders, IUser } from '../../interfaces';
 import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
 import { log } from 'console';
 import { jwtBlacklist } from './jwtBlacklist';
@@ -46,5 +46,14 @@ export class AccountsController {
     const bearerToken = headers.authorization;
     this.accountsService.logout(bearerToken);
     return {};
+  }
+
+  @Post('session')
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'User has a valid session'})
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'User does not have a valid session'})
+  @UseGuards(IsLoggedInGuard)
+  async checkSession(@Headers() headers: IRequestHeaders): Promise<ICreatedSession> {
+    const session = await this.accountsService.generateUserFromJWT(headers.authorization);
+    return session;
   }
 }

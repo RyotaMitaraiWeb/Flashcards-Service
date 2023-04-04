@@ -8,7 +8,7 @@ import { RegisterDto } from './dto/register-dto';
 import { UserDto } from './dto/user-dto';
 import { Account } from './entities/account.entity';
 import { LoginDto } from './dto/login-dto';
-import { IRequestHeaders } from '../../interfaces';
+import { ICreatedSession, IRequestHeaders } from '../../interfaces';
 
 describe('AccountsController', () => {
   let controller: AccountsController;
@@ -103,6 +103,36 @@ describe('AccountsController', () => {
 
       const result = controller.logout(headers);
       expect(result).toEqual({});
+    });
+  });
+
+  describe('checkSession', () => {
+    it('Returns an ICreatedSession object when the session is valid', async () => {
+      const expectedResult: ICreatedSession = {
+        token: 'a',
+        user: {
+          id: 1,
+          username: 'a',
+        }
+      };
+      jest.spyOn(service, 'generateUserFromJWT').mockImplementation(async () => {
+        const result: ICreatedSession = {
+          token: expectedResult.token,
+          user: {
+            id: expectedResult.user.id,
+            username: expectedResult.user.username,
+          }
+        };
+
+        return result;
+      });
+
+      const headers: IRequestHeaders = {
+        authorization: 'Bearer a',
+      };
+
+      const result = await controller.checkSession(headers);
+      expect(result).toEqual(expectedResult);
     });
   });
 });

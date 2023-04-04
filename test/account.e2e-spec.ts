@@ -11,7 +11,8 @@ import { validationMessages } from '../src/constants/validationMessages';
 import { UniqueUsernameValidator } from '../src/custom-validators/uniqueUsername';
 import { useContainer } from 'class-validator';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
-import { ICreatedSession } from '../src/interfaces';
+import { ICreatedSession, IUser } from '../src/interfaces';
+import { jwtBlacklist } from '../src/modules/accounts/jwtBlacklist';
 
 describe('Account controller (E2E)', () => {
   let app: INestApplication;
@@ -20,6 +21,7 @@ describe('Account controller (E2E)', () => {
   let registerEndpoint = '/accounts/register';
   let loginEndpoint = '/accounts/login';
   let logoutEndpoint = '/accounts/logout';
+  let sessionEndpoint = '/accounts/session';
 
   process.env.JWT_SECRET = 'wehmwopehnwpeoinw';
 
@@ -369,7 +371,57 @@ describe('Account controller (E2E)', () => {
     });
   });
 
+  describe('/session (POST)', () => {
+    let token: string = '';
+
+    let registerBody: IAuthBody = {
+      username: 'ryota1',
+      password: '123456',
+    };
+
+    let user: IUser = {
+      id: 0,
+      username: '',
+    };
+
+    beforeEach(async () => {
+      const result = await request(server)
+        .post(registerEndpoint)
+        .send(registerBody);
+
+      const res: ICreatedSession = result.body;
+
+      token = `Bearer ${res.token}`;
+      user = res.user;
+    });
+
+    it('Returns 201 for a valid session', async () => {
+      const result = await request(server)
+        .post(sessionEndpoint)
+        .send({})
+        .set('Authorization', token)
+        .expect(HttpStatus.CREATED);
+
+      const res: ICreatedSession = result.body;
+
+      const expectedToken = token.replace('Bearer ', '');
+      expect(res.token).toBe(expectedToken);
+      expect(res.user.id).toBe(user.id);
+      expect(res.user.username).toBe(user.username);
+    });
+
+    it('Returns 401 for an invalid session', async () => {
+      const result = await request(server)
+        .post(sessionEndpoint)
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const errors: IAuthErrorResponse = result.body;
+      expect(errors.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+  });
+
   afterEach(async () => {
     await app.close();
+    jwtBlacklist.clear();
   });
 });
