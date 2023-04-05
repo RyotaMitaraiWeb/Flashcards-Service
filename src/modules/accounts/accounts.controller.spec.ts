@@ -8,7 +8,8 @@ import { RegisterDto } from './dto/register-dto';
 import { UserDto } from './dto/user-dto';
 import { Account } from './entities/account.entity';
 import { LoginDto } from './dto/login-dto';
-import { ICreatedSession, IRequestHeaders } from '../../interfaces';
+import { ICreatedSession, IRequestHeaders, IUsernameExistsRequestParams } from '../../interfaces';
+import { HttpException } from '@nestjs/common';
 
 describe('AccountsController', () => {
   let controller: AccountsController;
@@ -135,4 +136,23 @@ describe('AccountsController', () => {
       expect(result).toEqual(expectedResult);
     });
   });
+
+  describe('checkIfUsername exists', () => {
+    const params: IUsernameExistsRequestParams = {
+      username: 'a',
+    };
+
+    it('Returns an empty object when the username exists without throwing an error', async () => {
+      jest.spyOn(service, 'checkIfUsernameExists').mockImplementation(async () => true);
+
+      const result = await controller.checkIfUsernameExists(params);
+      expect(result).toEqual({});
+    });
+
+    it('Throws an error if the username does not exist', async () => {
+      jest.spyOn(service, 'checkIfUsernameExists').mockImplementation(async () => false);
+
+      expect(() => controller.checkIfUsernameExists(params)).rejects.toThrow(HttpException);
+    });
+  })
 });

@@ -1,10 +1,13 @@
-import { Controller, Post, Body, Delete, UseGuards, HttpStatus, HttpCode, Headers } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Post, HttpException, Body, Delete, 
+  UseGuards, HttpStatus, HttpCode, 
+  Headers, Param, Get,
+ } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsGuestGuard } from '../../guards/isGuest';
 import { AccountsService } from './accounts.service';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
-import { ICreatedSession, IRequestHeaders } from '../../interfaces';
+import { ICreatedSession, IRequestHeaders, IUsernameExistsRequestParams } from '../../interfaces';
 import { IsLoggedInGuard } from '../../guards/isLoggedIn';
 
 @ApiBearerAuth('jwt')
@@ -53,5 +56,23 @@ export class AccountsController {
   async checkSession(@Headers() headers: IRequestHeaders): Promise<ICreatedSession> {
     const session = await this.accountsService.generateUserFromJWT(headers.authorization);
     return session;
+  }
+  
+  @Get('username/:username')
+  @ApiResponse({ status: HttpStatus.OK, description: 'Username exists' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Username does not exist' })
+  @ApiParam({
+    name: 'username',
+    description: 'Will check if the given username exists',
+  })
+  async checkIfUsernameExists(@Param() params: IUsernameExistsRequestParams): Promise<{}> {
+    const { username } = params;
+    
+    const user = await this.accountsService.checkIfUsernameExists(username);
+    if (!user) {
+      throw new HttpException({}, HttpStatus.NOT_FOUND);
+    }
+
+    return {};
   }
 }

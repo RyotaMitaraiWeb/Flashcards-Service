@@ -23,6 +23,18 @@ export interface IRequestHeaders {
 
 /**
  * ```typescript
+ * interface IUsernameExistsRequestParams {
+    username: string;
+}
+ * ```
+ * This interface represents the request parameters that are sent to ``/accounts/username/{username}``
+ */
+export interface IUsernameExistsRequestParams {
+  username: string;
+}
+
+/**
+ * ```typescript
  * interface IHttpError {
     message: string[];
     statusCode: number;

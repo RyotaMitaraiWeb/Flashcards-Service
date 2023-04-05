@@ -184,4 +184,20 @@ describe('AccountsService', () => {
       expect(user).toEqual(expectedUser);
     });
   });
+
+  describe('checkIfUsernameExists', () => {
+    it('Returns true when account repository finds the user', async () => {
+      jest.spyOn(repository, 'findOneBy').mockImplementation(async () => new Account());
+
+      const exists = await service.checkIfUsernameExists('a');
+      expect(exists).toBe(true);
+    });
+
+    it('Returns false when account repository returns null', async () => {
+      jest.spyOn(repository, 'findOneBy').mockImplementation(async () => null);
+
+      const exists = await service.checkIfUsernameExists('a');
+      expect(exists).toBe(false);
+    });
+  });
 });

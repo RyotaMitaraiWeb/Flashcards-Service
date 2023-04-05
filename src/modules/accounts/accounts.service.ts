@@ -78,6 +78,19 @@ export class AccountsService {
   }
 
   /**
+   * Checks if an account with the given username exists. **Note:** the Account entity class checks
+   * if a username exists when creating an account. This method is intended to be used for client-side
+   * validation.
+   * @param username the username to be searched
+   * @returns a Promise that resolves to ``true`` if the username exists or ``false``
+   * if the username does not exist
+   */
+  async checkIfUsernameExists(username: string): Promise<boolean> {
+    const user = await this.accountRepository.findOneBy({ username });
+    return user !== null;
+  }
+
+  /**
    * Generates a JWT of the user.
    * @param userDto - the user to be used for token generation
    * @returns a Promise that resolves to the token. The token contains the user's ``username`` and ``id``

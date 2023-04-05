@@ -146,6 +146,9 @@ An invalid JWT leads to the following response with status code 401:
 }
 ```
 
+### Checking if a username exists
+Although the Account entity checks if the username exists when registering, you may want a way to check if the username exists without registering anything (such as when validating the username on the client). In this case, send a GET request to ``/accounts/username/{username}`` where ``{username}`` is the username to be checked. The server will respond with status code 200 if the username exists or 404 if the username does not exist. In both cases, the response body will be an empty object.
+
 ## Custom validators
 ### ``UniqueUsername``
 This validator checks if the username is already taken by another user.
@@ -197,6 +200,13 @@ interface IRequestHeaders {
 ```
 
 The ``IRequest`` interface is used in contexts like guards where the request object isn't typed by default.
+
+```typescript
+interface IUsernameExistsRequestParams {
+  username: string;
+}
+```
+The ``IUsernameExistsRequestParams`` interface represents the request parameters that are sent to the ``/accounts/username/{username}`` endpoint.
 
 ```typescript
 interface IHttpError {

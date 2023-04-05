@@ -22,6 +22,7 @@ describe('Account controller (E2E)', () => {
   let loginEndpoint = '/accounts/login';
   let logoutEndpoint = '/accounts/logout';
   let sessionEndpoint = '/accounts/session';
+  let usernameExistsEndpoint = '/accounts/username';
 
   process.env.JWT_SECRET = 'wehmwopehnwpeoinw';
 
@@ -417,6 +418,37 @@ describe('Account controller (E2E)', () => {
 
       const errors: IAuthErrorResponse = result.body;
       expect(errors.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+  });
+
+  describe('/username/{username} (GET)', () => {
+    let registerBody: IAuthBody = {
+      username: 'ryota1',
+      password: '123456',
+    };
+
+    beforeEach(async () => {
+      await request(server)
+        .post(registerEndpoint)
+        .send(registerBody);
+    });
+
+    it('Returns 200 for an existing username', async () => {
+      const result = await request(server)
+        .get(`${usernameExistsEndpoint}/${registerBody.username}`)
+        .expect(HttpStatus.OK);
+
+      const res = result.body;
+      expect(res).toEqual({});
+    });
+
+    it('Returns 404 for a non-existant username', async () => {
+      const result = await request(server)
+        .get(`${usernameExistsEndpoint}/a`)
+        .expect(HttpStatus.NOT_FOUND);
+
+      const res = result.body;
+      expect(res).toEqual({});
     });
   });
 
