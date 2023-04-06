@@ -1,6 +1,6 @@
 import { validationRules } from "./validationRules";
 
-const { account } = validationRules;
+const { account, deck } = validationRules;
 
 /**
  * An object that contains validation error messages.
@@ -19,5 +19,23 @@ export const validationMessages = {
       isNotString: 'Password must be a string'
     },
   },
-  
+  deck: {
+    title: {
+      isTooLong: `Title must be no more than ${deck.title.maxLength}`,
+      isTooShort: `Title must have at least ${deck.title.minLength} characters`,
+      isNotString: 'Title must be a string',
+    },
+    description: {
+      isTooLong: `Description must be no more than ${deck.description.maxLength}`,
+      isNotString: 'Description must be a string',
+    },
+    flashcards: {
+      notEnoughFlashcards: `The deck must have at least ${validationRules.deck.flashcards.minimumFlashcards} flashcard(s)`,
+    },
+  },
+  flashcard: {
+    sideIsTooShort: `A side must be at least ${validationRules.flashcard.sideMinLength} character(s) long`,
+    sideIsTooLong: `A side must be no more than ${validationRules.flashcard.sideMaxLength} character(s) long`,
+    sideIsNotString: 'A side must be a string',
+  }
 };
