@@ -190,6 +190,7 @@ Currently, there are objects for constant values related to (alongside the names
 ```typescript
 interface IRequest {
   headers: IRequestHeaders;
+  user?: IUser;
 }
 ```
 

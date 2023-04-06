@@ -2,11 +2,13 @@
  * ```typescript
  * interface IRequest {
     headers?: IRequestHeaders;
+    user?: IUser;
 }
  * ```
  */
 export interface IRequest {
   headers: IRequestHeaders;
+  user?: IUser;
 }
 
 /**
