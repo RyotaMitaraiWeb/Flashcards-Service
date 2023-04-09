@@ -5,6 +5,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { Account } from './modules/accounts/entities/account.entity';
+import { DecksModule } from './modules/decks/decks.module';
+import { FlashcardsModule } from './modules/flashcards/flashcards.module';
+import { Deck } from './modules/decks/entities/deck.entity';
+import { Flashcard } from './modules/flashcards/entities/flashcard.entity';
 
 @Module({
   imports: [
@@ -19,10 +23,12 @@ import { Account } from './modules/accounts/entities/account.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [Account],
+      entities: [Account, Deck, Flashcard],
       synchronize: process.env.STAGE === 'DEV',
     }),
-    AccountsModule
+    AccountsModule,
+    DecksModule,
+    FlashcardsModule
   ],
   controllers: [AppController],
   providers: [AppService],

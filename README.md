@@ -77,7 +77,7 @@ If there are validation errors, the server will return a 400 error. If there is 
 The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
 
 
-### Login
+#### Login
 
 To log in a user (and thereby create a session), send a POST request to ``/account/login`` with the following JSON:
 ```json
@@ -111,7 +111,7 @@ If the password is wrong or the username does not exist, the server will return 
 ```
 The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
 
-### Logout
+#### Logout
 To log out a user, send a DELETE request to ``/account/logout`` with a valid JWT attached to the ``Authorization`` header.
 
 A successful logout returns status code 204 with no payload. The token that was sent to the server becomes unusable for future authorized requests.
@@ -125,7 +125,7 @@ An unsuccessful logout returns the following response:
 }
 ```
 
-### Session
+#### Session
 To validate a session, send a POST request to ``/accounts/session`` with a JWT attached to the ``Authorization`` header in format ``Bearer [token]`` (where ``[token]`` is the JWT). If the JWT is valid, the server will respond with a status code 201 and the following response:
 ```json
 {
@@ -146,8 +146,53 @@ An invalid JWT leads to the following response with status code 401:
 }
 ```
 
-### Checking if a username exists
+#### Checking if a username exists
 Although the Account entity checks if the username exists when registering, you may want a way to check if the username exists without registering anything (such as when validating the username on the client). In this case, send a GET request to ``/accounts/username/{username}`` where ``{username}`` is the username to be checked. The server will respond with status code 200 if the username exists or 404 if the username does not exist. In both cases, the response body will be an empty object.
+
+### Decks
+#### Creating a deck
+To create a deck, send a POST request to ``/decks`` with the following JSON:
+
+```json
+{
+  "title": "string",
+  "description": "string",
+  "flashcards": [
+    {
+      "front": "string",
+      "back": "string"
+    }
+  ]
+}
+```
+
+Make sure you have a valid JWT attached to the ``Authorization`` header in the format ``Bearer [jwt]``.
+
+If successful, the server will respond with status 201 and this JSON:
+
+```json
+{
+  "id": 0 // or whatever the deck's ID is
+}
+```
+
+If there are validation errors, the server will respond with status 400 and this JSON:
+```json
+{
+  "statusCode": 400,
+  "message": ["array", "of", "errors"],
+  "error": "Bad request"
+}
+```
+
+**Note:** if any of the flashcards in the ``flashcards`` array have validation errors, those will be formatted like ``flashcards.0.[error_message]`` (or something similar). This is a limitation of ``class-validator``.
+
+The following validations are applied when creating a deck:
+
+* The title must be between 5 and 200 characters long.
+* The description must not be longer than 500 characters long. However, the description is only optional
+* The array of flashcards must have a length of 1 or higher.
+* Each side of the flashcard must be between 1 and 150 characters long.
 
 ## Custom validators
 ### ``UniqueUsername``

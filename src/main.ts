@@ -1,10 +1,10 @@
+import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder } from '@nestjs/swagger';
 import { SwaggerModule } from '@nestjs/swagger/dist';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
-import 'reflect-metadata';
 import { useContainer } from 'class-validator';
 
 async function bootstrap() {
@@ -37,7 +37,9 @@ async function bootstrap() {
   }
 
   app.use(helmet());
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    
+  }));
   await app.listen(3000);
 }
 bootstrap();

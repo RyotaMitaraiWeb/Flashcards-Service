@@ -1,8 +1,9 @@
 import { MaxLength, IsAlphanumeric, MinLength, Validate } from "class-validator";
 import { validationMessages } from "../../../constants/validationMessages";
 import { validationRules } from "../../../constants/validationRules";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UniqueUsernameValidator } from '../../../custom-validators/uniqueUsername';
+import { Deck } from '../../decks/entities/deck.entity';
 
 /**
  * ```typescript
@@ -35,4 +36,8 @@ export class Account {
   
   @Column()
   public password: string;
+
+  @OneToMany(() => Deck, d => d.author)
+  @JoinColumn()
+  public decks: Deck[]
 }

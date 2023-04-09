@@ -29,3 +29,60 @@ export interface IAuthErrorResponse {
   error: string;
   statusCode: string;
 }
+
+/**
+ * ```typescript
+ * interface IFlashcardSubmission {
+    front: string;
+    back: string;
+}
+ * ```
+ */
+export interface IFlashcardSubmission {
+  front: string;
+  back: string;
+}
+
+/**
+ * ```typescript
+ * interface IDeckSubmission {
+    title: string;
+    description: string;
+    flashcards: IFlashcardSubmission[];
+  }
+ * ```
+ * Represents the body of POST requests sent to ``/decks``
+ */
+export interface IDeckSubmission {
+  title: string;
+  description: string;
+  flashcards: IFlashcardSubmission[];
+}
+
+/**
+ * ```typescript
+ * interface IDeckSubmissionSuccess {
+    id: number;
+  }
+ * ```
+ * Represents the response body of a successful POST request to ``/decks``
+ */
+export interface IDeckSubmissionSuccess {
+  id: number;
+}
+
+/**
+ * ```typescript
+ * interface IDeckSubmissionFailure {
+    message: string[];
+    error: string;
+    statusCode: string;
+  }
+ * ```
+ * Represents the body of a failed POST request to ``/decks``.
+ */
+export interface IDeckSubmissionFailure {
+  message: string[];
+  error: string;
+  statusCode: string;
+}
