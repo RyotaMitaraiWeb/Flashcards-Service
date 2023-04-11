@@ -38,8 +38,9 @@ export class DecksService {
   }
 
   /**
-   * Retrieves the ``deck`` with the given ID and loads its ``flashbacks`` or throws an 
-   * ``HttpFormattedException`` if it does not exist or its ``isDeleted`` is set to ``true``.
+   * Retrieves the ``deck`` with the given ID and loads its ``flashbacks`` and relevant properties
+   * or throws an ``HttpFormattedException`` if it does not exist 
+   * or its ``isDeleted`` is set to ``true``.
    * @param id the ID of the deck to be retrieved
    * @returns a Promise that resolves to ``GetDeckDto`` if a deck exists.
    */
@@ -88,7 +89,13 @@ export class DecksService {
     await this.deckRepository.save(deck);
     return id;
   }
-
+  
+  /**
+   * Retrieves the ``deck`` with the given ``id`` or throws a Not Found error
+   * if the deck does not exist or is marked as deleted.
+   * @param id the id of the deck
+   * @returns a Promise that resolves to a ``Deck``
+   */
   private async findDeckByIdOrThrow(id: number): Promise<Deck> {
     const deck = await this.deckRepository.findOneBy({
       id,
