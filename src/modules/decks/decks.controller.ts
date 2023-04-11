@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, Req, UseGuards, HttpStatus, ParseIntPipe, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, Req, UseGuards, HttpStatus, ParseIntPipe, HttpCode, Put } from '@nestjs/common';
 import { DecksService } from './decks.service';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -35,7 +35,7 @@ export class DecksController {
     description: 'The id of the deck',
   })
   async findById(@Param('id', ParseIntPipe) id: number): Promise<GetDeckDto> {
-    const deck = await this.decksService.findDeckByIdOrThrow(id);
+    const deck = await this.decksService.findDeckById(id);
     return deck;
   }
 

@@ -25,25 +25,25 @@ export class DecksService {
    * @returns a Promise that resolves to the deck's id
    */
   async create(createDeckDto: CreateDeckDto, authorId: number): Promise<Deck> {
-    const deck = new Deck();    
+    const deck = new Deck();
     const flashcards = this.createFlashcardsFromDtoArray(createDeckDto.flashcards);
 
     deck.title = createDeckDto.title;
     deck.description = createDeckDto.description;
     deck.authorId = authorId;
     deck.flashcards = flashcards;
-    
+
     await this.deckRepository.save(deck);
     return deck;
   }
-  
+
   /**
-   * Retrieves the ``deck`` with the given ID or throws an ``HttpFormattedException``
-   * if it does not exist or its ``isDeleted`` is set to ``true``.
+   * Retrieves the ``deck`` with the given ID and loads its ``flashbacks`` or throws an 
+   * ``HttpFormattedException`` if it does not exist or its ``isDeleted`` is set to ``true``.
    * @param id the ID of the deck to be retrieved
    * @returns a Promise that resolves to ``GetDeckDto`` if a deck exists.
    */
-  async findDeckByIdOrThrow(id: number): Promise<GetDeckDto> {
+  async findDeckById(id: number): Promise<GetDeckDto> {
     const deck = await this.deckRepository.findOne({
       where: {
         id,
@@ -68,7 +68,7 @@ export class DecksService {
         error: 'Not Found',
         statusCode: HttpStatus.NOT_FOUND,
       }, HttpStatus.NOT_FOUND)
-    }    
+    }
 
     deck.flashcards = this.removeFlashcardsThatDoNotMatchDeckVersion(deck.version, deck.flashcards);
     const dto = this.ToGetDeckDto(deck);
@@ -82,15 +82,21 @@ export class DecksService {
    * @returns a Promise that resolves to ``id``
    */
   async deleteDeckOrThrow(id: number): Promise<number> {
+    const deck = await this.findDeckByIdOrThrow(id);
+
+    deck.isDeleted = true;
+    await this.deckRepository.save(deck);
+    return id;
+  }
+
+  private async findDeckByIdOrThrow(id: number): Promise<Deck> {
     const deck = await this.deckRepository.findOneBy({
       id,
       isDeleted: false,
     });
 
     if (deck) {
-      deck.isDeleted = true;
-      await this.deckRepository.save(deck);
-      return id;
+      return deck;
     }
 
     throw new HttpFormattedException({

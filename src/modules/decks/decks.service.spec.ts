@@ -82,7 +82,7 @@ describe('DecksService', () => {
         return deck;
       });
 
-      const deck = await service.findDeckByIdOrThrow(1);
+      const deck = await service.findDeckById(1);
       expect(deck).toEqual({
         id: 1,
         description: '',
@@ -94,7 +94,7 @@ describe('DecksService', () => {
 
     it('Throws an HttpFormattedException if deckRepository.findOne returns null', async () => {
       jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
-      expect(() => service.findDeckByIdOrThrow(0)).rejects.toThrow(HttpFormattedException);
+      expect(() => service.findDeckById(0)).rejects.toThrow(HttpFormattedException);
     });
   });
 

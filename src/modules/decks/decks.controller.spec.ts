@@ -79,7 +79,7 @@ describe('DecksController', () => {
       expectedDeck.title = 'a';
       expectedDeck.description = '';
 
-      jest.spyOn(deckService, 'findDeckByIdOrThrow').mockImplementation(async () => {
+      jest.spyOn(deckService, 'findDeckById').mockImplementation(async () => {
         const dto = new GetDeckDto();
         dto.authorId = expectedDeck.authorId;
         dto.description = expectedDeck.description;
@@ -100,7 +100,7 @@ describe('DecksController', () => {
     });
 
     it('Throws an HttpFormattedException when service throws the same error', async () => {
-      jest.spyOn(deckService, 'findDeckByIdOrThrow').mockImplementation(async () => {
+      jest.spyOn(deckService, 'findDeckById').mockImplementation(async () => {
         throw new HttpFormattedException({
           error: '',
           message: [],
