@@ -64,15 +64,7 @@ Upon a successful registration, you will receive the following JSON response wit
 }
 ```
 
-If there are validation errors, the server will return a 400 error. If there is a valid JWT attached to the ``Authorization`` header, the server will return a 403 error. The lack of JWT requirement has a higher priority than validation errors (so if a request has validation errors AND an attached token, the server will return a 403 error). The JSON response of an error is as follows:
-
-```json
-{
-  "statusCode": 400, // or 403
-  "message": ["an", "array", "of", "each", "error", "message"],
-  "error": "Bad Request" // or "Forbidden"
-}
-```
+If there are validation errors, the server will return a 400 error. If there is a valid JWT attached to the ``Authorization`` header, the server will return a 403 error. The lack of JWT requirement has a higher priority than validation errors (so if a request has validation errors AND an attached token, the server will return a 403 error). The JSON response is an ``HttpFormattedException``-based JSON.
 
 The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
 
@@ -100,30 +92,14 @@ Upon a successful authentication, you will receive the following JSON response w
 }
 ```
 
-If the password is wrong or the username does not exist, the server will return the following JSON with status code 401
-
-```json
-{
-  "statusCode": 401,
-  "message": ["Wrong username or password"],
-  "error": "Unauthorized"
-}
-```
-The ``IHttpError`` interface and ``HttpFormattedException`` class implement this structure.
+If the password is wrong or the username does not exist, the server will return an ``HttpFormattedException``-based JSON
 
 #### Logout
 To log out a user, send a DELETE request to ``/account/logout`` with a valid JWT attached to the ``Authorization`` header.
 
 A successful logout returns status code 204 with no payload. The token that was sent to the server becomes unusable for future authorized requests.
 
-An unsuccessful logout returns the following response:
-```json
-{
-  "statusCode": 401,
-  "message": ["You must be logged in to perform this action"],
-  "error": "Unauthorized"
-}
-```
+An unsuccessful logout returns an ``HttpFormattedException``-based JSON and status code 401.
 
 #### Session
 To validate a session, send a POST request to ``/accounts/session`` with a JWT attached to the ``Authorization`` header in format ``Bearer [token]`` (where ``[token]`` is the JWT). If the JWT is valid, the server will respond with a status code 201 and the following response:
@@ -137,13 +113,7 @@ To validate a session, send a POST request to ``/accounts/session`` with a JWT a
 }
 ```
 
-An invalid JWT leads to the following response with status code 401:
-```json
-{
-  "statusCode": 401,
-  "message": ["You must be logged in to perform this action"],
-  "error": "Unauthorized"
-}
+An invalid JWT leads to an ``HttpFormattedException``-based JSON with status code 401.
 ```
 
 #### Checking if a username exists
@@ -176,14 +146,7 @@ If successful, the server will respond with status 201 and this JSON:
 }
 ```
 
-If there are validation errors, the server will respond with status 400 and this JSON:
-```json
-{
-  "statusCode": 400,
-  "message": ["array", "of", "errors"],
-  "error": "Bad request"
-}
-```
+If there are validation errors, the server will respond with status 400 and an ``HttpFormattedException``-based JSON
 
 **Note:** if any of the flashcards in the ``flashcards`` array have validation errors, those will be formatted like ``flashcards.0.[error_message]`` (or something similar). This is a limitation of ``class-validator``.
 
@@ -213,16 +176,7 @@ To get a specific deck, send a GET request to ``/decks/{id}`` (where ``{id}`` is
 
 The deck retrieves only flashcards that match its ``version``. In other words, if the deck has a ``version`` of ``2``, that means that only flashcards that have a ``version`` of ``2`` will be part of the response.
 
-If the deck does not exist or is marked as deleted, the following JSON will be returned:
-```json
-{
-  "message": [
-    "The deck you are looking for does not exist"
-  ],
-  "error": "Not Found",
-  "statusCode": 404
-}
-```
+If the deck does not exist or is marked as deleted, an ``HttpFormattedException``-based JSON with status code 404 will be returned.
 
 ## Custom validators
 ### ``UniqueUsername``
