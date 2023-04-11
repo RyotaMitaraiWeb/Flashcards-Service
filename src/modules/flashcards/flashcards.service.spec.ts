@@ -26,4 +26,16 @@ describe('FlashcardsService', () => {
     expect(flashcard.front).toEqual(createFlashcardDto.front);
     expect(flashcard.back).toEqual(createFlashcardDto.back);
   });
+
+  it('Returns a Flashcard entity with a version', () => {
+    const createFlashcardDto = new CreateFlashcardDto();
+    createFlashcardDto.front = 'a';
+    createFlashcardDto.back = 'a';
+    const version = 2;
+
+    const flashcard = service.createFlashcardFromDto(createFlashcardDto, version);
+    expect(flashcard.front).toBe(createFlashcardDto.front);
+    expect(flashcard.back).toBe(createFlashcardDto.back);
+    expect(flashcard.version).toBe(version);
+  });
 });

@@ -4,11 +4,10 @@ import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Deck } from './entities/deck.entity';
 import { FlashcardsService } from '../flashcards/flashcards.service';
-import { CreateFlashcardDto } from '../flashcards/dto/create-flashcard.dto';
 import { Flashcard } from '../flashcards/entities/flashcard.entity';
 import { CreateDeckDto } from './dto/create-deck.dto';
-import { GetDeckDto } from './dto/get-deck.dto';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
+import { EditDeckDto } from './dto/edit-deck.dto';
 
 describe('DecksService', () => {
   let service: DecksService;
@@ -74,7 +73,7 @@ describe('DecksService', () => {
         deck.authorId = 1;
         deck.description = '';
         deck.flashcards = [{ front: 'a', back: 'a', id: 1, version: 1, deck: new Deck() }],
-        deck.id = 1;
+          deck.id = 1;
         deck.isDeleted = false;
         deck.title = 'a';
         deck.version = 1;
@@ -105,17 +104,54 @@ describe('DecksService', () => {
 
     it('returns the ID of the deck for successful delete', async () => {
       const deckId = 1;
-      jest.spyOn(deckRepository, 'findOneBy').mockImplementation(async () => new Deck());
+      jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => new Deck());
 
       const result = await service.deleteDeckOrThrow(deckId);
       expect(result).toBe<number>(deckId);
     });
 
-    it('Throws an HttpFormattedException if findOneBy returns null', async () => {
+    it('Throws an HttpFormattedException if findOne returns null', async () => {
       const deckId = 1;
-      jest.spyOn(deckRepository, 'findOneBy').mockImplementation(async () => null);
+      jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
 
       expect(() => service.deleteDeckOrThrow(deckId)).rejects.toThrow(HttpFormattedException);
+    });
+  });
+
+  describe('updateDeck', () => {
+    it('Returns the id if the update is successful', async () => {
+      jest.spyOn(flashcardService, 'createFlashcardFromDto').mockImplementation(() => new Flashcard());
+      jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => {
+        const deck = new Deck();
+        deck.flashcards = [{
+          front: '1',
+          back: '2',
+          version: 1,
+          id: 1,
+          deck: new Deck(),
+        }]
+
+        return deck;
+      });
+      jest.spyOn(deckRepository, 'save').mockImplementation(async () => new Deck());
+
+      const id = 1;
+      const dto = new EditDeckDto();
+      dto.flashcards = [
+        {
+          front: 'a',
+          back: 'b',
+        }
+      ];
+
+      const result = await service.updateDeck(id, dto);
+      expect(result).toBe<number>(id);
+    });
+
+    it('Throws an HttpFormattedException when the deck cannot be found', async () => {
+      jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
+
+      expect(() => service.updateDeck(1, new EditDeckDto())).rejects.toThrow(HttpFormattedException);
     });
   });
 });

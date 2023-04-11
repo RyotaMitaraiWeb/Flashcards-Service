@@ -9,6 +9,7 @@ import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { GetDeckDto } from './dto/get-deck.dto';
 import { CreateFlashcardDto } from '../flashcards/dto/create-flashcard.dto';
 import { Flashcard } from '../flashcards/entities/flashcard.entity';
+import { EditDeckDto } from './dto/edit-deck.dto';
 
 @Injectable()
 export class DecksService {
@@ -89,6 +90,31 @@ export class DecksService {
     await this.deckRepository.save(deck);
     return id;
   }
+
+  /**
+   * Updates the deck with the given data. A successful update will increment its
+   * ``version`` by one. In addition, the deck will add the new flashcards with the new version;
+   * any flashcard with an old version will no longer be retrieved in GET requests.
+   * 
+   * If the deck does not exist or is marked as deleted, a Not Found error is thrown.
+   * @param id the ID of the deck to be updated
+   * @param editDeckDto the new deck
+   * @returns a Promise that resolves to the deck's ID
+   */
+  async updateDeck(id: number, editDeckDto: EditDeckDto): Promise<number> {
+    const deck = await this.findDeckByIdOrThrow(id, true);
+    const version = deck.version;
+    deck.version++;
+
+    deck.title = editDeckDto.title;
+    deck.description = editDeckDto.description;
+
+    const flashcards = this.createFlashcardsFromDtoArray(editDeckDto.flashcards, version + 1);
+    deck.flashcards = deck.flashcards.concat(flashcards);
+
+    await this.deckRepository.save(deck);
+    return id;
+  }
   
   /**
    * Retrieves the ``deck`` with the given ``id`` or throws a Not Found error
@@ -96,10 +122,25 @@ export class DecksService {
    * @param id the id of the deck
    * @returns a Promise that resolves to a ``Deck``
    */
-  private async findDeckByIdOrThrow(id: number): Promise<Deck> {
-    const deck = await this.deckRepository.findOneBy({
-      id,
-      isDeleted: false,
+  private async findDeckByIdOrThrow(id: number): Promise<Deck>;
+
+  /**
+   * Retrieves the ``deck`` with the given ``id`` and optionally loads
+   * its flashcards or throws a Not Found error
+   * if the deck does not exist or is marked as deleted.
+   * @param id the id of the deck
+   * @returns a Promise that resolves to a ``Deck``
+   */
+  private async findDeckByIdOrThrow(id: number, loadRelations: boolean): Promise<Deck>;
+  private async findDeckByIdOrThrow(id: number, loadRelations = false): Promise<Deck> {
+    const deck = await this.deckRepository.findOne({
+      where: {
+        id,
+        isDeleted: false,
+      },
+      relations: {
+        flashcards: loadRelations,
+      }
     });
 
     if (deck) {
@@ -114,12 +155,26 @@ export class DecksService {
   }
 
   /**
-   * Returns a ``Flashcard`` representation of a ``createFlashcardDto`` array
+   * Returns a ``Flashcard`` representation of a ``createFlashcardDto`` array. The ``version``
+   * is set to ``1`` in the database automatically
    * @param flashcards an array of ``CreateFlashcardDto``
    * @returns an array of ``Flashcard``s
    */
-  private createFlashcardsFromDtoArray(flashcards: CreateFlashcardDto[]): Flashcard[] {
-    return flashcards.map(f => this.flashcardsService.createFlashcardFromDto(f));
+  private createFlashcardsFromDtoArray(flashcards: CreateFlashcardDto[]): Flashcard[];
+
+  /**
+   * Returns a ``Flashcard`` representation of a ``createFlashcardDto`` array with the ``version``
+   * set to a specific number (typically to the deck's new version when updating).
+   * @param flashcards an array of ``CreateFlashcardDto``
+   * @returns an array of ``Flashcard``s
+   */
+  private createFlashcardsFromDtoArray(flashcards: CreateFlashcardDto[], version: number): Flashcard[];
+  private createFlashcardsFromDtoArray(flashcards: CreateFlashcardDto[], version?: number): Flashcard[] {
+    if (!version) {
+      return flashcards.map(f => this.flashcardsService.createFlashcardFromDto(f));
+    }
+
+    return flashcards.map(f => this.flashcardsService.createFlashcardFromDto(f, version));
   }
 
   /**

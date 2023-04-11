@@ -10,6 +10,7 @@ import { IRequest } from '../../interfaces';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { GetDeckDto } from './dto/get-deck.dto';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
+import { EditDeckDto } from './dto/edit-deck.dto';
 
 describe('DecksController', () => {
   let controller: DecksController;
@@ -133,6 +134,28 @@ describe('DecksController', () => {
       });
 
       expect(() => controller.deleteDeck(deckId)).rejects.toThrow(HttpFormattedException);
+    });
+  });
+
+  describe('updateDeck', () => {
+    it('Returns an empty object for a successful update', async () => {
+      const id = 1;
+      jest.spyOn(deckService, 'updateDeck').mockImplementation(async () => id);
+
+      const result = await controller.editDeck(id, new EditDeckDto());
+      expect(result).toEqual({});
+    });
+
+    it('Throws an HttpFormattedException if updateDeck throws one', async () => {
+      jest.spyOn(deckService, 'updateDeck').mockImplementation(async () => {
+        throw new HttpFormattedException({
+          error: 'a',
+          message: [],
+          statusCode: 1,
+        }, 1);
+      });
+
+      expect(() => controller.editDeck(1, new EditDeckDto())).rejects.toThrow(HttpFormattedException);
     });
   });
 });

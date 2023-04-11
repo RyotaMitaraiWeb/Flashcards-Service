@@ -615,6 +615,426 @@ describe('AppController (e2e)', () => {
     });
   });
 
+  describe('/decks/{id} (PUT)', () => {
+    let register2: IAuthBody = {
+      username: 'ryota2',
+      password: '123456'
+    }
+
+    let token2: string = '';
+
+    const deckSubmission: IDeckSubmission = {
+      title: 'a'.repeat(validationRules.deck.title.minLength),
+      description: '',
+      flashcards: [],
+    }
+
+    const editDeckSubmission: IDeckSubmission = {
+      title: 'b'.repeat(validationRules.deck.title.minLength),
+      description: 'a',
+      flashcards: [
+        {
+          front: 'b'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'b'.repeat(validationRules.flashcard.sideMinLength)
+        }
+      ],
+    }
+
+    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+      deckSubmission.flashcards[i] = {
+        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+      };
+
+      editDeckSubmission.flashcards[i + 1] = {
+        front: 'b'.repeat(validationRules.flashcard.sideMinLength),
+        back: 'b'.repeat(validationRules.flashcard.sideMinLength)
+      };
+    }
+
+    let id: number = 0;
+
+    beforeEach(async () => {
+      const result = await request(server)
+        .post('/accounts/register')
+        .send(register2);
+
+      const res: ICreatedSession = result.body;
+      token2 = `Bearer ${res.token}`;
+
+      const deckResult = await request(server)
+        .post(deckEndpoint)
+        .set('Authorization', token)
+        .send(deckSubmission);
+
+      const deckRes: IDeckSubmissionSuccess = deckResult.body;
+      id = deckRes.id;
+    });
+
+    it('Updates the deck successfully', async () => {
+      await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(editDeckSubmission)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const result = await request(server)
+        .get(getDeckEndpoint(id))
+
+      const res: GetDeckDto = result.body;
+      expect(res.id).toBe<number>(id);
+      expect(res.title).toBe<string>(editDeckSubmission.title);
+      expect(res.description).toBe<string>(editDeckSubmission.description);
+      expect(res.flashcards.length).toBe<number>(editDeckSubmission.flashcards.length);
+    });
+
+    it('Returns 400 if the title is too short', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength - 1),
+        description: '',
+        flashcards: []
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const res: IDeckSubmissionFailure = result.body;
+      expect(res.message.includes(validationMessages.deck.title.isTooShort)).toBe(true);
+    });
+
+    it('Returns 400 if the title is too long', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.maxLength + 1),
+        description: '',
+        flashcards: []
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const res: IDeckSubmissionFailure = result.body;
+      expect(res.message.includes(validationMessages.deck.title.isTooLong)).toBe(true);
+    });
+
+    it('Returns 400 if the title is not a string', async () => {
+      const submission: IDeckSubmission = {
+        title: 1 as any,
+        description: '',
+        flashcards: []
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const res: IDeckSubmissionFailure = result.body;
+      expect(res.message.includes(validationMessages.deck.title.isNotString)).toBe(true);
+    });
+
+    it('Returns 400 if the description is too long', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: 'a'.repeat(validationRules.deck.description.maxLength + 1),
+        flashcards: []
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const res: IDeckSubmissionFailure = result.body;
+      expect(res.message.includes(validationMessages.deck.description.isTooLong)).toBe(true);
+    });
+
+    it('Returns 400 if the description is not a string', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: 1 as any,
+        flashcards: []
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const res: IDeckSubmissionFailure = result.body;
+      expect(res.message.includes(validationMessages.deck.description.isNotString)).toBe(true);
+    });
+
+    it('Returns 400 if the flashcards are not an array', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: 1 as any,
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 400 if there are not enough flashcards', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards - 1; i++) {
+        submission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const res: IDeckSubmissionFailure = result.body;
+      expect(res.message.includes(validationMessages.deck.flashcards.notEnoughFlashcards)).toBe(true);
+    });
+
+    it('Returns 400 if at least one front side is too short', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [
+          {
+            front: 'a'.repeat(validationRules.flashcard.sideMinLength - 1),
+            back: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          }
+        ],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i + 1] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 400 if at least one front side is too long', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [
+          {
+            front: 'a'.repeat(validationRules.flashcard.sideMaxLength + 1),
+            back: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          }
+        ],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i + 1] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 400 if at least one back side is too short', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [
+          {
+            front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+            back: 'a'.repeat(validationRules.flashcard.sideMinLength - 1),
+          }
+        ],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i + 1] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 400 if at least one back side is too long', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [
+          {
+            front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+            back: 'a'.repeat(validationRules.flashcard.sideMaxLength + 1),
+          }
+        ],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i + 1] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 400 if at least one front side is not a string', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [
+          {
+            front: 1 as any,
+            back: 'a'.repeat(validationRules.flashcard.sideMaxLength + 1),
+          }
+        ],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i + 1] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 400 if at least one back side is not a string', async () => {
+      const submission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [
+          {
+            front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+            back: 1 as any,
+          }
+        ],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        submission.flashcards[i + 1] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .send(submission)
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('Returns 401 if the user is not logged in', async () => {
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .send(editDeckSubmission)
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+
+    it('Returns 403 if the user is not the creator', async () => {
+      const result = await request(server)
+        .put(getDeckEndpoint(id))
+        .set('Authorization', token2)
+        .send(editDeckSubmission)
+        .expect(HttpStatus.FORBIDDEN);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotCreator)).toBe(true);
+    });
+
+    it('Returns 404 if the deck does not exist', async () => {
+      const result = await request(server)
+        .put(getDeckEndpoint(0))
+        .set('Authorization', token2)
+        .send(editDeckSubmission)
+        .expect(HttpStatus.NOT_FOUND);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
+    });
+  });
+
   afterEach(async () => {
     await app.close();
   });
