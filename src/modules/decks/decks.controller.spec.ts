@@ -111,4 +111,28 @@ describe('DecksController', () => {
       expect(() => controller.findById(1)).rejects.toThrow(HttpFormattedException);
     });
   });
+
+  describe('deleteDeck', () => {
+    it('Returns an empty object for successful delete', async () => {
+      const deckId = 1;
+      jest.spyOn(deckService, 'deleteDeckOrThrow').mockImplementation(async () => deckId);
+
+      const id = await controller.deleteDeck(deckId);
+
+      expect(id).toEqual<object>({});
+    });
+
+    it('Throws an HttpFormatted exception if deleteDeckOrThrow throws one', async () => {
+      const deckId = 1;
+      jest.spyOn(deckService, 'deleteDeckOrThrow').mockImplementation(async () => {
+        throw new HttpFormattedException({
+          error: 'a',
+          message: [],
+          statusCode: 1,
+        }, 1);
+      });
+
+      expect(() => controller.deleteDeck(deckId)).rejects.toThrow(HttpFormattedException);
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, Req, UseGuards, HttpStatus, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, Req, UseGuards, HttpStatus, ParseIntPipe, HttpCode } from '@nestjs/common';
 import { DecksService } from './decks.service';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -6,6 +6,7 @@ import { IRequest } from '../../interfaces';
 import { IsLoggedInGuard } from '../../guards/isLoggedIn';
 import { Deck } from './entities/deck.entity';
 import { GetDeckDto } from './dto/get-deck.dto';
+import { IsCreatorGuard } from '../../guards/isCreator';
 
 @Controller('decks')
 @ApiBearerAuth('jwt')
@@ -36,5 +37,21 @@ export class DecksController {
   async findById(@Param('id', ParseIntPipe) id: number): Promise<GetDeckDto> {
     const deck = await this.decksService.findDeckByIdOrThrow(id);
     return deck;
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(IsLoggedInGuard, IsCreatorGuard)
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Deck was deleted successfully' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'JWT is valid, but the user\'s id does not match the author\'s' })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Deck does not exist or is already marked as deleted' })
+  @ApiParam({
+    name: 'id',
+    description: 'the ID of the deck to be deleted',
+  })
+  async deleteDeck(@Param('id', ParseIntPipe) id: number) {
+    await this.decksService.deleteDeckOrThrow(id);
+    return {};
   }
 }

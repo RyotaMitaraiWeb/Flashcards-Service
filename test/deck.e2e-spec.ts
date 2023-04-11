@@ -3,7 +3,7 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { IAuthBody, IDeckSubmission, IDeckSubmissionFailure, IDeckSubmissionSuccess } from './util/interfaces';
-import { ICreatedSession, IUser } from '../src/interfaces';
+import { ICreatedSession, IHttpError, IUser } from '../src/interfaces';
 import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
 import { validationMessages } from '../src/constants/validationMessages';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
@@ -523,7 +523,7 @@ describe('AppController (e2e)', () => {
       const result = await request(server)
         .get(getDeckEndpoint(0))
         .expect(HttpStatus.NOT_FOUND);
-      
+
       const res: IDeckSubmissionFailure = result.body;
 
       expect(res).toEqual<IDeckSubmissionFailure>({
@@ -531,6 +531,87 @@ describe('AppController (e2e)', () => {
         error: 'Not Found',
         statusCode: HttpStatus.NOT_FOUND,
       });
+    });
+  });
+
+  describe('/decks/{id} (DELETE)', () => {
+    let register2: IAuthBody = {
+      username: 'ryota2',
+      password: '123456'
+    }
+
+    let token2: string = '';
+
+    const deckSubmission: IDeckSubmission = {
+      title: 'a'.repeat(validationRules.deck.title.minLength),
+      description: '',
+      flashcards: [],
+    }
+
+    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+      deckSubmission.flashcards[i] = {
+        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+      };
+    }
+
+    let id: number = 0;
+
+    beforeEach(async () => {
+      const result = await request(server)
+        .post('/accounts/register')
+        .send(register2);
+
+      const res: ICreatedSession = result.body;
+      token2 = `Bearer ${res.token}`;
+
+      const deckResult = await request(server)
+        .post(deckEndpoint)
+        .set('Authorization', token)
+        .send(deckSubmission);
+
+      const deckRes: IDeckSubmissionSuccess = deckResult.body;
+      id = deckRes.id;
+    });
+
+    it('Successfully deletes a deck', async () => {
+      await request(server)
+        .del(getDeckEndpoint(id))
+        .set('Authorization', token)
+        .expect(HttpStatus.NO_CONTENT);
+
+      await request(server)
+        .get(getDeckEndpoint(id))
+        .expect(HttpStatus.NOT_FOUND);
+    });
+
+    it('Returns 401 if the user is not logged in', async () => {
+      const result = await request(server)
+        .del(getDeckEndpoint(id))
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+
+    it('Returns 403 if the user is not the creator of the deck', async () => {
+      const result = await request(server)
+        .del(getDeckEndpoint(id))
+        .set('Authorization', token2)
+        .expect(HttpStatus.FORBIDDEN);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotCreator)).toBe(true);
+    });
+
+    it('Returns 404 if the deck does not exist', async () => {
+      const result = await request(server)
+        .del(getDeckEndpoint(0))
+        .set('Authorization', token)
+        .expect(HttpStatus.NOT_FOUND);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
     });
   });
 

@@ -97,4 +97,25 @@ describe('DecksService', () => {
       expect(() => service.findDeckByIdOrThrow(0)).rejects.toThrow(HttpFormattedException);
     });
   });
+
+  describe('deleteDeckOrThrow', () => {
+    beforeEach(async () => {
+      jest.spyOn(deckRepository, 'save').mockImplementation(async () => new Deck());
+    });
+
+    it('returns the ID of the deck for successful delete', async () => {
+      const deckId = 1;
+      jest.spyOn(deckRepository, 'findOneBy').mockImplementation(async () => new Deck());
+
+      const result = await service.deleteDeckOrThrow(deckId);
+      expect(result).toBe<number>(deckId);
+    });
+
+    it('Throws an HttpFormattedException if findOneBy returns null', async () => {
+      const deckId = 1;
+      jest.spyOn(deckRepository, 'findOneBy').mockImplementation(async () => null);
+
+      expect(() => service.deleteDeckOrThrow(deckId)).rejects.toThrow(HttpFormattedException);
+    });
+  });
 });

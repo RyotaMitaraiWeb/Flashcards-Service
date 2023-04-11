@@ -74,6 +74,31 @@ export class DecksService {
   }
 
   /**
+   * Sets the ``isDeleted`` property of the deck with the given ``id`` to ``true`` or
+   * throws a Not Found error.
+   * @param id the ID of the deck to be deleted
+   * @returns a Promise that resolves to ``id``
+   */
+  async deleteDeckOrThrow(id: number): Promise<number> {
+    const deck = await this.deckRepository.findOneBy({
+      id,
+      isDeleted: false,
+    });
+
+    if (deck) {
+      deck.isDeleted = true;
+      await this.deckRepository.save(deck);
+      return id;
+    }
+
+    throw new HttpFormattedException({
+      message: [invalidActionsMessages.deckDoesNotExist],
+      error: 'Not Found',
+      statusCode: HttpStatus.NOT_FOUND,
+    }, HttpStatus.NOT_FOUND);
+  }
+
+  /**
    * Converts a ``Deck`` object to a ``GetDeckDto`` object.
    * @param deck the ``Deck`` to be transformed
    * @returns a ``GetDeckDto`` representation of ``deck``
