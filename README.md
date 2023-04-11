@@ -266,6 +266,7 @@ Currently, there are objects for constant values related to (alongside the names
 interface IRequest {
   headers: IRequestHeaders;
   user?: IUser;
+  params: object;
 }
 ```
 

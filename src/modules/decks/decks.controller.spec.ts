@@ -55,6 +55,7 @@ describe('DecksController', () => {
       });
 
       const request: IRequest = {
+        params: {},
         headers: {
           authorization: 'Bearer a',
         },

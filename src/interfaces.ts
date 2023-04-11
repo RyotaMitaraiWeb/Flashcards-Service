@@ -9,6 +9,7 @@
 export interface IRequest {
   headers: IRequestHeaders;
   user?: IUser;
+  params: object;
 }
 
 /**
