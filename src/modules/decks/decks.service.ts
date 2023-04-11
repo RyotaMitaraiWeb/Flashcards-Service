@@ -70,7 +70,7 @@ export class DecksService {
       }, HttpStatus.NOT_FOUND)
     }    
 
-    deck.flashcards = deck.flashcards.filter(f => f.version === deck.version);
+    deck.flashcards = this.removeFlashcardsThatDoNotMatchDeckVersion(deck.version, deck.flashcards);
     const dto = this.ToGetDeckDto(deck);
     return dto;
   }
@@ -107,6 +107,16 @@ export class DecksService {
    */
   private createFlashcardsFromDtoArray(flashcards: CreateFlashcardDto[]): Flashcard[] {
     return flashcards.map(f => this.flashcardsService.createFlashcardFromDto(f));
+  }
+
+  /**
+   * Returns all flashcards whose ``version`` matches the deck's ``version``.
+   * @param deckVersion the deck's current version
+   * @param flashcards the deck's flashcards
+   * @returns an array of ``Flashcard``s whose ``version`` matches the deck's ``version``
+   */
+  private removeFlashcardsThatDoNotMatchDeckVersion(deckVersion: number, flashcards: Flashcard[]) {
+    return flashcards.filter(f => f.version === deckVersion);
   }
 
   /**
