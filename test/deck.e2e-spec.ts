@@ -3,18 +3,21 @@ import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { AppModule } from './../src/app.module';
 import { IAuthBody, IDeckSubmission, IDeckSubmissionFailure, IDeckSubmissionSuccess } from './util/interfaces';
-import { ICreatedSession } from '../src/interfaces';
+import { ICreatedSession, IUser } from '../src/interfaces';
 import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
 import { validationMessages } from '../src/constants/validationMessages';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
 import { validationRules } from '../src/constants/validationRules';
 import { useContainer } from 'class-validator';
+import { GetDeckDto } from '../src/modules/decks/dto/get-deck.dto';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   let server: any;
 
   let deckEndpoint = '/decks';
+  let getDeckEndpoint = (id: string | number) => `/decks/${id}`;
+
   let token: string = '';
 
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
@@ -454,7 +457,81 @@ describe('AppController (e2e)', () => {
         .post(deckEndpoint)
         .send(deck)
         .expect(HttpStatus.UNAUTHORIZED);
-    })
+    });
+  });
+
+  describe('/decks/{id} (GET)', () => {
+    const registerBody: IAuthBody = {
+      username: 'a'.repeat(validationRules.account.username.minLength),
+      password: 'a'.repeat(validationRules.account.password.minLength),
+    };
+
+    const deckSubmission: IDeckSubmission = {
+      title: 'a'.repeat(validationRules.deck.title.minLength),
+      description: '',
+      flashcards: [],
+    }
+
+    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+      deckSubmission.flashcards[i] = {
+        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+      };
+    }
+
+    let token: string = '';
+    let id: number = 0;
+    let user: IUser = {
+      id: 0,
+      username: ''
+    }
+
+    beforeEach(async () => {
+      const result = await request(server)
+        .post('/accounts/register')
+        .send(registerBody);
+
+      const res: ICreatedSession = result.body;
+      token = res.token;
+      user = res.user;
+
+      const deckResult = await request(server)
+        .post(deckEndpoint)
+        .set('Authorization', `Bearer ${token}`)
+        .send(deckSubmission);
+
+      const deckRes: IDeckSubmissionSuccess = deckResult.body;
+      id = deckRes.id;
+    });
+
+    it('Retrieves a deck successfully', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint(id))
+        .expect(HttpStatus.OK);
+
+      const res: GetDeckDto = result.body;
+      expect(res).toEqual<GetDeckDto>({
+        id,
+        title: deckSubmission.title,
+        description: deckSubmission.description,
+        authorId: user.id,
+        flashcards: deckSubmission.flashcards,
+      });
+    });
+
+    it('Returns 404 for a non-existant deck', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint(0))
+        .expect(HttpStatus.NOT_FOUND);
+      
+      const res: IDeckSubmissionFailure = result.body;
+
+      expect(res).toEqual<IDeckSubmissionFailure>({
+        message: [invalidActionsMessages.deckDoesNotExist],
+        error: 'Not Found',
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    });
   });
 
   afterEach(async () => {

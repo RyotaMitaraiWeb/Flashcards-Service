@@ -7,6 +7,8 @@ import { FlashcardsService } from '../flashcards/flashcards.service';
 import { CreateFlashcardDto } from '../flashcards/dto/create-flashcard.dto';
 import { Flashcard } from '../flashcards/entities/flashcard.entity';
 import { CreateDeckDto } from './dto/create-deck.dto';
+import { GetDeckDto } from './dto/get-deck.dto';
+import { HttpFormattedException } from '../../util/HttpFormattedException';
 
 describe('DecksService', () => {
   let service: DecksService;
@@ -62,6 +64,37 @@ describe('DecksService', () => {
       expect(deck.description).toBe(dto.description);
       expect(deck.flashcards).toEqual(dto.flashcards);
       expect(deck.authorId).toEqual(authorId);
+    });
+  });
+
+  describe('findDeckByIdOrThrow', () => {
+    it('Successfully returns a GetDeckDto', async () => {
+      jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => {
+        const deck = new Deck();
+        deck.authorId = 1;
+        deck.description = '';
+        deck.flashcards = [{ front: 'a', back: 'a', id: 1, version: 1, deck: new Deck() }],
+        deck.id = 1;
+        deck.isDeleted = false;
+        deck.title = 'a';
+        deck.version = 1;
+
+        return deck;
+      });
+
+      const deck = await service.findDeckByIdOrThrow(1);
+      expect(deck).toEqual({
+        id: 1,
+        description: '',
+        flashcards: [{ front: 'a', back: 'a' }],
+        title: 'a',
+        authorId: 1,
+      });
+    });
+
+    it('Throws an HttpFormattedException if deckRepository.findOne returns null', async () => {
+      jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
+      expect(() => service.findDeckByIdOrThrow(0)).rejects.toThrow(HttpFormattedException);
     });
   });
 });

@@ -38,7 +38,6 @@ export class Deck {
   public author: Account;
 
   @OneToMany(() => Flashcard, f => f.deck, {
-    eager: true,
     nullable: false,
     cascade: true,
   })

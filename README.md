@@ -194,6 +194,36 @@ The following validations are applied when creating a deck:
 * The array of flashcards must have a length of 1 or higher.
 * Each side of the flashcard must be between 1 and 150 characters long.
 
+### Getting a deck
+To get a specific deck, send a GET request to ``/decks/{id}`` (where ``{id}`` is the ID of the deck). The server will return the following JSON for status code 200:
+```json
+{
+  "title": "your_title",
+  "id": 0, // this will be the deck's ID instead
+  "flashcards": [
+    {
+      "front": "your_front",
+      "back": "your_back"
+    }
+  ],
+  "description": "your_description",
+  "authorId": 0 // this will be the author's account ID
+}
+```
+
+The deck retrieves only flashcards that match its ``version``. In other words, if the deck has a ``version`` of ``2``, that means that only flashcards that have a ``version`` of ``2`` will be part of the response.
+
+If the deck does not exist or is marked as deleted, the following JSON will be returned:
+```json
+{
+  "message": [
+    "The deck you are looking for does not exist"
+  ],
+  "error": "Not Found",
+  "statusCode": 404
+}
+```
+
 ## Custom validators
 ### ``UniqueUsername``
 This validator checks if the username is already taken by another user.

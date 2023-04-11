@@ -84,5 +84,5 @@ export interface IDeckSubmissionSuccess {
 export interface IDeckSubmissionFailure {
   message: string[];
   error: string;
-  statusCode: string;
+  statusCode: number;
 }
