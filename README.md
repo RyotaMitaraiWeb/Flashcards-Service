@@ -179,7 +179,14 @@ The deck retrieves only flashcards that match its ``version``. In other words, i
 If the deck does not exist or is marked as deleted, an ``HttpFormattedException``-based JSON with status code 404 will be returned.
 
 ### Deleting a deck
-To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization header``. The server will respond with 204 for a successful delete or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
+To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header. The server will respond with 204 for a successful delete or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
+
+**Note:** this will merely mark the deck as deleted, but it will remain in the database. However, it won't be retrieved in any of the API calls whatsoever.
+
+### Editing a deck
+To edit a deck, send a PUT request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header with the same JSON format as for POST requests to ``/decks``. The server will respond with 204 for a successful edit or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
+
+**Note:** this does not delete any previous flashcards. Rather, the deck's version is incremented and the flashcards in the submission are marked with the new version. Flashcards with older versions are not retrieved in GET requests.
 
 ## Custom validators
 ### ``UniqueUsername``

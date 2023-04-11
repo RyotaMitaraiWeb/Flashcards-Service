@@ -4,10 +4,12 @@ import { validationMessages } from '../../../constants/validationMessages';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
+ * ```typescript
  * class CreateFlashcardDto {
     front: string;
     back: string;
 }
+ * ```
  */
 export class CreateFlashcardDto {
   @MinLength(validationRules.flashcard.sideMinLength, {
