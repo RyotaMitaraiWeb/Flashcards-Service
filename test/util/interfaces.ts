@@ -1,5 +1,11 @@
 import { ICreatedSession } from '../../src/interfaces';
 
+interface IHttpError {
+  message: string[];
+  error: string;
+  statusCode: string;
+}
+
 /**
  * ```typescript
  * interface IAuthBody {
@@ -24,10 +30,8 @@ export interface IAuthBody {
  * ```
  * This is used to type a failed register/login request during tests.
  */
-export interface IAuthErrorResponse {
-  message: string[];
-  error: string;
-  statusCode: string;
+export interface IAuthErrorResponse extends IHttpError {
+
 }
 
 /**
@@ -81,8 +85,6 @@ export interface IDeckSubmissionSuccess {
  * ```
  * Represents the body of a failed POST request to ``/decks``.
  */
-export interface IDeckSubmissionFailure {
-  message: string[];
-  error: string;
-  statusCode: number;
+export interface IDeckSubmissionFailure extends IHttpError {
+  
 }
