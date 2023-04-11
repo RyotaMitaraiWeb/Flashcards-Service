@@ -178,6 +178,9 @@ The deck retrieves only flashcards that match its ``version``. In other words, i
 
 If the deck does not exist or is marked as deleted, an ``HttpFormattedException``-based JSON with status code 404 will be returned.
 
+### Deleting a deck
+To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization header``. The server will respond with 204 for a successful delete or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
+
 ## Custom validators
 ### ``UniqueUsername``
 This validator checks if the username is already taken by another user.
@@ -205,6 +208,11 @@ This guard aborts requests that have a valid JWT attached to the ``Authorization
 
 ### IsLoggedIn
 This guard aborts requests that do not have a valid JWT attached to the ``Authorization`` header.
+
+### IsCreator
+This guard aborts requests from users that are not the creators of the given deck.
+
+This guard can be applied to any route with an ``id`` variable. The guard does not check if the JWT is valid and must be paired with ``IsLoggedIn`` to prevent errors. It does, however, check if the deck does not exist and will throw a 404 error instead of 403 in this case.
 
 ## Constants
 Those are objects that contain some constant values, such as validation rule values, error messages, and etc.
