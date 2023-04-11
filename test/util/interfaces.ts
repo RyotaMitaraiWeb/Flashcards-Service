@@ -3,7 +3,7 @@ import { ICreatedSession } from '../../src/interfaces';
 interface IHttpError {
   message: string[];
   error: string;
-  statusCode: string;
+  statusCode: number;
 }
 
 /**
