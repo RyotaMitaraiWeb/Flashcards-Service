@@ -7,6 +7,8 @@ import { FlashcardsService } from '../flashcards/flashcards.service';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { GetDeckDto } from './dto/get-deck.dto';
+import { CreateFlashcardDto } from '../flashcards/dto/create-flashcard.dto';
+import { Flashcard } from '../flashcards/entities/flashcard.entity';
 
 @Injectable()
 export class DecksService {
@@ -24,7 +26,7 @@ export class DecksService {
    */
   async create(createDeckDto: CreateDeckDto, authorId: number): Promise<Deck> {
     const deck = new Deck();    
-    const flashcards = createDeckDto.flashcards.map(f => this.flashcardsService.createFlashcardFromDto(f));
+    const flashcards = this.createFlashcardsFromDtoArray(createDeckDto.flashcards);
 
     deck.title = createDeckDto.title;
     deck.description = createDeckDto.description;
@@ -96,6 +98,15 @@ export class DecksService {
       error: 'Not Found',
       statusCode: HttpStatus.NOT_FOUND,
     }, HttpStatus.NOT_FOUND);
+  }
+
+  /**
+   * Returns a ``Flashcard`` representation of a ``createFlashcardDto`` array
+   * @param flashcards an array of ``CreateFlashcardDto``
+   * @returns an array of ``Flashcard``s
+   */
+  private createFlashcardsFromDtoArray(flashcards: CreateFlashcardDto[]): Flashcard[] {
+    return flashcards.map(f => this.flashcardsService.createFlashcardFromDto(f));
   }
 
   /**
