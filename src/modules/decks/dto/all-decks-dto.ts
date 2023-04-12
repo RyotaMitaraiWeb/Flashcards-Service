@@ -7,7 +7,7 @@
     authorId: number; 
 }
  * ```
- * This DTO is used for mapping the bodies of GET requests sent to ``/decks/all`` to the appropriate
+ * This DTO is used for mapping the bodies of GET requests sent to ``/decks/all`` or ``/decks/own`` to the appropriate
  * object structure.
  */
 export class AllDecksDto {

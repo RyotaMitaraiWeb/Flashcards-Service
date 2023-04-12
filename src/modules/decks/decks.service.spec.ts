@@ -185,4 +185,34 @@ describe('DecksService', () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe('getUserDecks', () => {
+    it('Returns a AllDecksDto array representation of whatever the repository returns', async () => {
+      const dto = new AllDecksDto();
+      dto.title = 'a';
+      dto.description = 'a';
+      dto.id = 1;
+      dto.authorId = 1;
+
+      jest.spyOn(deckRepository, 'find').mockImplementation(async () => {
+        const deck = new Deck();
+        deck.title = dto.title;
+        deck.description = dto.description;
+        deck.authorId = dto.authorId;
+        deck.id = dto.id;
+
+        return [deck];
+      });
+
+      const result = await service.getUserDecks(dto.authorId);
+      expect(result).toEqual<AllDecksDto[]>([dto]);
+    });
+
+    it('Works correctly when the repository returns an empty array', async () => {
+      jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
+      
+      const result = await service.getUserDecks(1);
+      expect(result).toEqual([]);
+    });
+  });
 });

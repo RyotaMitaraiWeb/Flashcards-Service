@@ -1088,6 +1088,104 @@ describe('AppController (e2e)', () => {
     });
   });
 
+  describe('/decks/own (GET)', () => {
+    const submission: IDeckSubmission = {
+      title: 'c'.repeat(validationRules.deck.title.minLength),
+      description: '',
+      flashcards: []
+    }
+
+    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+      submission.flashcards[i] = {
+        front: 'c'.repeat(validationRules.flashcard.sideMinLength),
+        back: 'c'.repeat(validationRules.flashcard.sideMinLength)
+      };
+    }
+
+    let id1 = 0;
+
+    beforeEach(async () => {
+      const result1 = await request(server)
+        .post(deckEndpoint)
+        .set('Authorization', token)
+        .send(submission);
+
+      const res1: IDeckSubmissionSuccess = result1.body;
+      id1 = res1.id;
+
+      let register2: IAuthBody = {
+        username: 'ryota2',
+        password: '123456'
+      }
+
+      let token2: string = '';
+
+      const deckSubmission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: [],
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        deckSubmission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      let id2: number = 0;
+
+      const result = await request(server)
+        .post('/accounts/register')
+        .send(register2);
+
+      const res: ICreatedSession = result.body;
+      token2 = `Bearer ${res.token}`;
+
+      const result2 = await request(server)
+        .post(deckEndpoint)
+        .set('Authorization', token2)
+        .send(deckSubmission);
+
+      const res2: IDeckSubmissionSuccess = result2.body;
+      id2 = res2.id;
+    });
+
+    it('Returns only the decks that the user has created', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint('own'))
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res.length).toBe(1);
+      expect(res[0].id).toBe(id1);
+    });
+
+    it('Returns 401 if the user is not logged in', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint('own'))
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+
+    it('Returns an empty array if the user does not have any decks', async () => {
+      await request(server)
+        .del(getDeckEndpoint(id1))
+        .set('Authorization', token);
+
+      const result = await request(server)
+        .get(getDeckEndpoint('own'))
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res).toEqual([]);
+    });
+  });
+
   afterEach(async () => {
     await app.close();
   });

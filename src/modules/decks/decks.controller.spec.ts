@@ -187,4 +187,40 @@ describe('DecksController', () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe('getUserDecks', () => {
+    const authorId = 1;
+    const req: IRequest = {
+      headers: {},
+      params: {
+        id: authorId,
+      }
+    }
+
+    it('Returns whatever the getAllDecks service method returns', async () => {
+      const dto = new AllDecksDto();
+      dto.id = 1;
+      dto.authorId = authorId;
+      dto.title = 'a';
+      dto.description = 'a';
+      jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => [
+        {
+          id: dto.id,
+          authorId: dto.authorId,
+          title: dto.title,
+          description: dto.description,
+        }
+      ]);
+
+      const result = await controller.getUserDecks(req);
+      expect(result).toEqual<AllDecksDto[]>([dto]);
+    });
+
+    it('Works correctly when the getAllDecks service method returns an empty array', async () => {
+      jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => [])
+      
+      const result = await controller.getUserDecks(req);
+      expect(result).toEqual([]);
+    });
+  });
 });

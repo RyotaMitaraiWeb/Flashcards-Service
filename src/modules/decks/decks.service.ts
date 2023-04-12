@@ -139,6 +139,24 @@ export class DecksService {
     const allDecks = decks.map(d => this.ToAllDecksDto(d));
     return allDecks;
   }
+
+  async getUserDecks(authorId: number): Promise<AllDecksDto[]> {
+    const decks = await this.deckRepository.find({
+      where: {
+        isDeleted: false,
+        authorId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        authorId: true,
+      }
+    });
+
+    const decksDto = decks.map(d => this.ToAllDecksDto(d));
+    return decksDto;
+  }
   
   /**
    * Retrieves the ``deck`` with the given ``id`` or throws a Not Found error

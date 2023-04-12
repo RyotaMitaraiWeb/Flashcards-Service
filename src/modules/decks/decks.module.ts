@@ -16,9 +16,15 @@ export class DecksModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AttachUserFromTokenToRequestMiddleware)
-      .forRoutes({
-        path: 'decks',
-        method: RequestMethod.POST,
-      })
+      .forRoutes(
+        {
+          path: 'decks',
+          method: RequestMethod.POST,
+        },
+        {
+          path: 'decks/own',
+          method: RequestMethod.GET,
+        },
+      )
   }
 }

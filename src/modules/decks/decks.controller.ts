@@ -32,6 +32,17 @@ export class DecksController {
     return await this.decksService.getAllDecks();
   }
 
+  @Get('own')
+  @UseGuards(IsLoggedInGuard)
+  @ApiResponse({ status: HttpStatus.OK, description: 'The request is valid' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Missing or invalid JWT in the Authorization header' })
+  async getUserDecks(@Req() req: IRequest) {
+    const id: number = req?.user?.id || 0;
+    const decks = await this.decksService.getUserDecks(id);
+    
+    return decks;
+  }
+
   @Get(':id')
   @ApiResponse({ status: HttpStatus.OK, description: 'Deck retrieved successfully' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Deck does not exist or is deleted' })
