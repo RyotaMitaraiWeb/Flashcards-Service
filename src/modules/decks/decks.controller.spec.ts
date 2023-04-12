@@ -11,6 +11,7 @@ import { CreateDeckDto } from './dto/create-deck.dto';
 import { GetDeckDto } from './dto/get-deck.dto';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { EditDeckDto } from './dto/edit-deck.dto';
+import { AllDecksDto } from './dto/all-decks-dto';
 
 describe('DecksController', () => {
   let controller: DecksController;
@@ -156,6 +157,34 @@ describe('DecksController', () => {
       });
 
       expect(() => controller.editDeck(1, new EditDeckDto())).rejects.toThrow(HttpFormattedException);
+    });
+  });
+
+  describe('getAllDecks', () => {
+    it('Returns whatever the getAllDecks service method returns', async () => {
+      const dto = new AllDecksDto();
+      dto.id = 1;
+      dto.authorId = 1;
+      dto.title = 'a';
+      dto.description = 'a';
+      jest.spyOn(deckService, 'getAllDecks').mockImplementation(async () => [
+        {
+          id: dto.id,
+          authorId: dto.authorId,
+          title: dto.title,
+          description: dto.description,
+        }
+      ]);
+
+      const result = await controller.getAllDecks();
+      expect(result).toEqual<AllDecksDto[]>([dto]);
+    });
+
+    it('Works correctly when the getAllDecks service method returns an empty array', async () => {
+      jest.spyOn(deckService, 'getAllDecks').mockImplementation(async () => [])
+      
+      const result = await controller.getAllDecks();
+      expect(result).toEqual([]);
     });
   });
 });

@@ -10,6 +10,7 @@ import { invalidActionsMessages } from '../src/constants/invalidActionsMessages'
 import { validationRules } from '../src/constants/validationRules';
 import { useContainer } from 'class-validator';
 import { GetDeckDto } from '../src/modules/decks/dto/get-deck.dto';
+import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
@@ -19,6 +20,10 @@ describe('AppController (e2e)', () => {
   let getDeckEndpoint = (id: string | number) => `/decks/${id}`;
 
   let token: string = '';
+  let user: IUser = {
+    id: 0,
+    username: '',
+  };
 
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
 
@@ -46,6 +51,7 @@ describe('AppController (e2e)', () => {
 
     const res: ICreatedSession = result.body;
     token = `Bearer ${res.token}`;
+    user = res.user;
 
   });
 
@@ -1032,6 +1038,53 @@ describe('AppController (e2e)', () => {
 
       const res: IHttpError = result.body;
       expect(res.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
+    });
+  });
+
+  describe('/decks/all (GET)', () => {
+    it('Returns an empty array if there are no decks', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint('all'))
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res).toEqual([]);
+    });
+
+    it('Returns an array of decks', async () => {
+      const deckSubmission: IDeckSubmission = {
+        title: 'a'.repeat(validationRules.deck.title.minLength),
+        description: '',
+        flashcards: []
+      }
+
+      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
+        deckSubmission.flashcards[i] = {
+          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
+          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
+        };
+      }
+
+      const deckRes = await request(server)
+        .post(deckEndpoint)
+        .set('Authorization', token)
+        .send(deckSubmission);
+
+      const deck: IDeckSubmissionSuccess = deckRes.body;
+
+      const result = await request(server)
+        .get(getDeckEndpoint('all'))
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res).toEqual<AllDecksDto[]>([
+        {
+          id: deck.id,
+          title: deckSubmission.title,
+          description: deckSubmission.description,
+          authorId: user.id,
+        }
+      ]);
     });
   });
 

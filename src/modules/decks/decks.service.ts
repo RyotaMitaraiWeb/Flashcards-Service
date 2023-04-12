@@ -10,6 +10,7 @@ import { GetDeckDto } from './dto/get-deck.dto';
 import { CreateFlashcardDto } from '../flashcards/dto/create-flashcard.dto';
 import { Flashcard } from '../flashcards/entities/flashcard.entity';
 import { EditDeckDto } from './dto/edit-deck.dto';
+import { AllDecksDto } from './dto/all-decks-dto';
 
 @Injectable()
 export class DecksService {
@@ -115,6 +116,29 @@ export class DecksService {
     await this.deckRepository.save(deck);
     return id;
   }
+
+  /**
+   * Returns an array of all decks that are not marked as deleted.
+   * 
+   * **Note:** this loads only the decks' ``id``, ``title``, ``description``, and ``authorId``.
+   * @returns a Promise that resolves to an ``AllDecksDto`` array
+   */
+  async getAllDecks(): Promise<AllDecksDto[]> {
+    const decks = await this.deckRepository.find({
+      where: {
+        isDeleted: false,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        authorId: true,
+      }
+    });
+
+    const allDecks = decks.map(d => this.ToAllDecksDto(d));
+    return allDecks;
+  }
   
   /**
    * Retrieves the ``deck`` with the given ``id`` or throws a Not Found error
@@ -204,6 +228,20 @@ export class DecksService {
     });
     dto.description = deck.description;
     dto.authorId = deck.authorId;
+
+    return dto;
+  }
+
+  /**
+   * @param deck the ``Deck`` to be transformed
+   * @returns an ``AllDecksDto`` representation of the ``deck``
+   */
+  private ToAllDecksDto(deck: Deck): AllDecksDto {
+    const dto = new AllDecksDto();
+    dto.title = deck.title;
+    dto.authorId = deck.authorId;
+    dto.description = deck.description;
+    dto.id = deck.id;
 
     return dto;
   }

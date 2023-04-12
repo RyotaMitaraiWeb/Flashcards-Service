@@ -26,8 +26,13 @@ export class DecksController {
     return { id: deck.id };
   }
 
+  @Get('all')
+  @ApiResponse({ status: HttpStatus.OK, description: 'By default, you should always get an array' })
+  async getAllDecks() {
+    return await this.decksService.getAllDecks();
+  }
+
   @Get(':id')
-  @ApiTags('flashcards')
   @ApiResponse({ status: HttpStatus.OK, description: 'Deck retrieved successfully' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Deck does not exist or is deleted' })
   @ApiParam({
@@ -60,13 +65,13 @@ export class DecksController {
   @UseGuards(IsLoggedInGuard, IsCreatorGuard)
   @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Deck was edited successfully' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN ,description: 'JWT is valid, but the user\'s id does not match the author\'s' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'JWT is valid, but the user\'s id does not match the author\'s' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Deck does not exist or is already marked as deleted' })
   @ApiParam({
     name: 'id',
     description: 'id of the deck to be deleted',
   })
-  async editDeck(@Param('id', ParseIntPipe) id: number, @Body() editDeckDto: EditDeckDto): Promise<{}> {    
+  async editDeck(@Param('id', ParseIntPipe) id: number, @Body() editDeckDto: EditDeckDto): Promise<{}> {
     await this.decksService.updateDeck(id, editDeckDto);
     return {};
   }

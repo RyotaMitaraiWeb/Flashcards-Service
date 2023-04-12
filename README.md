@@ -178,6 +178,19 @@ The deck retrieves only flashcards that match its ``version``. In other words, i
 
 If the deck does not exist or is marked as deleted, an ``HttpFormattedException``-based JSON with status code 404 will be returned.
 
+### Getting all decks
+To get all decks that are not marked as deleted, send a GET request to ``/decks/all``. You will receive a JSON similar to this:
+```json
+[
+  {
+    "title": "string",
+    "authorId": 0,
+    "description": "string",
+    "id": 0
+  }
+]
+```
+
 ### Deleting a deck
 To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header. The server will respond with 204 for a successful delete or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
 
