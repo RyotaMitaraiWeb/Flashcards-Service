@@ -20,7 +20,7 @@ export class IsGuestGuard implements CanActivate {
     const token = extractTokenFromHeader(bearerToken);
     
     try {
-      if (!token) {
+      if (!token || jwtBlacklist.has(token)) {
         throw new Error();
       }
 
