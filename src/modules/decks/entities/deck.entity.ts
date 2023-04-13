@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGene
 import { validationRules } from '../../../constants/validationRules';
 import { Account } from '../../accounts/entities/account.entity';
 import { Flashcard } from '../../flashcards/entities/flashcard.entity';
+import { Bookmark } from '../../bookmarks/entities/bookmark.entity';
 
 /**
  * ```typescript
@@ -57,4 +58,7 @@ export class Deck {
 
   @Column({ default: false })
   public isDeleted: boolean;
+
+  @OneToMany(() => Bookmark, b => b.deck)
+  userBookmarks: Bookmark[];
 }

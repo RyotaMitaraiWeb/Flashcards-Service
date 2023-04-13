@@ -9,6 +9,8 @@ import { DecksModule } from './modules/decks/decks.module';
 import { FlashcardsModule } from './modules/flashcards/flashcards.module';
 import { Deck } from './modules/decks/entities/deck.entity';
 import { Flashcard } from './modules/flashcards/entities/flashcard.entity';
+import { BookmarksModule } from './modules/bookmarks/bookmarks.module';
+import { Bookmark } from './modules/bookmarks/entities/bookmark.entity';
 
 @Module({
   imports: [
@@ -23,12 +25,13 @@ import { Flashcard } from './modules/flashcards/entities/flashcard.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [Account, Deck, Flashcard],
+      entities: [Account, Deck, Flashcard, Bookmark],
       synchronize: process.env.STAGE === 'DEV',
     }),
     AccountsModule,
     DecksModule,
-    FlashcardsModule
+    FlashcardsModule,
+    BookmarksModule
   ],
   controllers: [AppController],
   providers: [AppService],
