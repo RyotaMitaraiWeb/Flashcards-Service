@@ -56,4 +56,35 @@ describe('BookmarksService', () => {
         .rejects.toThrow(HttpFormattedException);
     });
   });
+
+  describe('removeBookmarkOrThrow', () => {
+    const expectedBookmark = new Bookmark();
+      expectedBookmark.deckId = 1;
+      expectedBookmark.userId = 1;
+
+    beforeEach(() => {
+      jest.spyOn(bookmarkRepository, 'save').mockImplementation(async () => expectedBookmark);
+    });
+
+    it('Returns a Bookmark object when successful', async () => {
+      jest.spyOn(bookmarkRepository, 'findOne').mockImplementation(async () => {
+        const bookmark = new Bookmark();
+        bookmark.deckId = expectedBookmark.deckId;
+        bookmark.userId = expectedBookmark.userId;
+
+        return bookmark;
+      });
+
+      const result = await service.removeBookmarkOrThrow(expectedBookmark.userId, expectedBookmark.deckId);
+      
+      expect(result).toEqual<BookmarkDto>(expectedBookmark);
+    });
+
+    it('Throws an HttpFormattedException if the repository does not find an existing bookmark', async () => {
+      jest.spyOn(bookmarkRepository, 'findOne').mockImplementation(async () => null);
+
+      expect(() => service.removeBookmarkOrThrow(expectedBookmark.userId, expectedBookmark.deckId))
+        .rejects.toThrow(HttpFormattedException);
+    });
+  });
 });

@@ -19,7 +19,7 @@ export class BookmarksService {
    * Saves the deck to the user's bookmarks or throws an ``HttpFormattedException`` if the operation is invalid
    * @param userId the ID of the user saving the deck
    * @param deckId the ID of the deck being saved
-   * @returns a Promise that resolves to a ``Bookmark``
+   * @returns a Promise that resolves to a ``BookmarkDto``
    */
   async addBookmarkOrThrow(userId: number, deckId: number): Promise<BookmarkDto> {
     const existingBookmark = await this.findBookmarkedDeck(userId, deckId);
@@ -37,6 +37,32 @@ export class BookmarksService {
     bookmark.deckId = deckId;
     bookmark.userId = userId;
 
+    await this.bookmarkRepository.save(bookmark);
+
+    const dto = this.toBookmarkDto(bookmark);
+    return dto;
+  }
+
+  /**
+   * Marks the bookmark of the given user's given deck as deleted or throws an error if this is
+   * not possible.
+   * @param userId the ID of the user saving the deck
+   * @param deckId the ID of the deck being saved
+   * @returns a Promise that resolves to a ``BookmarkDto``
+   */
+  async removeBookmarkOrThrow(userId: number, deckId: number): Promise<BookmarkDto> {
+    const bookmark = await this.findBookmarkedDeck(userId, deckId);
+    if (!bookmark) {
+      throw new HttpFormattedException(
+        {
+          error: 'Forbidden',
+          statusCode: HttpStatus.FORBIDDEN,
+          message: [invalidActionsMessages.hasNotBookmarked]
+        }, HttpStatus.FORBIDDEN
+      );
+    }
+
+    bookmark.isDeleted = true;
     await this.bookmarkRepository.save(bookmark);
 
     const dto = this.toBookmarkDto(bookmark);

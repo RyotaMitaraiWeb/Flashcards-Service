@@ -156,8 +156,60 @@ describe('BookmarkController (e2e)', () => {
       const errors: IHttpError = result.body;
       expect(errors.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
     });
-    
   });
+
+  describe('/bookmarks/{id} (DELETE)', () => {
+    it('Removes a bookmark successfully', async () => {
+      await request(server)
+        .post(bookmarkEndpoint(deckId2))
+        .set('Authorization', token1);
+
+      await request(server)
+        .del(bookmarkEndpoint(deckId2))
+        .set('Authorization', token1)
+        .expect(HttpStatus.NO_CONTENT);
+    });
+
+    it('Returns 401 if the user is not logged in', async () => {
+      const result = await request(server)
+        .del(bookmarkEndpoint(deckId1))
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const errors: IHttpError = result.body;
+      expect(errors.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
+    });
+
+    it('Returns 403 if the user is the creator of the deck', async () => {
+      const result = await request(server)
+        .del(bookmarkEndpoint(deckId1))
+        .set('Authorization', token1)
+        .expect(HttpStatus.FORBIDDEN);
+
+      const errors: IHttpError = result.body;
+      expect(errors.message.includes(invalidActionsMessages.isCreator)).toBe(true);
+    });
+
+    it('Returns 403 if the user has not bookmarked the deck on first place', async () => {
+      const result = await request(server)
+        .del(bookmarkEndpoint(deckId1))
+        .set('Authorization', token2)
+        .expect(HttpStatus.FORBIDDEN);
+
+      const errors: IHttpError = result.body;
+      expect(errors.message.includes(invalidActionsMessages.hasNotBookmarked)).toBe(true);
+    });
+
+    it('Returns 404 if the deck does not exist', async () => {
+      const result = await request(server)
+        .del(bookmarkEndpoint(0))
+        .set('Authorization', token2)
+        .expect(HttpStatus.NOT_FOUND);
+
+      const errors: IHttpError = result.body;
+      expect(errors.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
+    });
+  });
+
   afterEach(async () => {
     await app.close();
   })

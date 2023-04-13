@@ -10,6 +10,17 @@ import { IRequest } from '../../interfaces';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
 
+const req: IRequest = {
+  headers: {},
+  params: {
+    id: 1,
+  },
+  user: {
+    id: 1,
+    username: 'a',
+  }
+};
+
 describe('BookmarksController', () => {
   let controller: BookmarksController;
   let bookmarkService: BookmarksService;
@@ -40,17 +51,6 @@ describe('BookmarksController', () => {
   });
 
   describe('addBookmark', () => {
-    const req: IRequest = {
-      headers: {},
-      params: {
-        id: 1,
-      },
-      user: {
-        id: 1,
-        username: 'a',
-      }
-    };
-
     it('Returns an empty object when adding a bookmark successfully', async () => {
       jest.spyOn(bookmarkService, 'addBookmarkOrThrow').mockImplementation(async () => new BookmarkDto());
 
@@ -68,6 +68,27 @@ describe('BookmarksController', () => {
       });
 
       expect(() => controller.addBookmark(req)).rejects.toThrow(HttpFormattedException);
+    });
+  });
+
+  describe('removeBookmark', () => {
+    it('Returns an empty object when adding a bookmark successfully', async () => {
+      jest.spyOn(bookmarkService, 'removeBookmarkOrThrow').mockImplementation(async () => new BookmarkDto());
+
+      const result = await controller.removeBookmark(req);
+      expect(result).toEqual({});
+    });
+
+    it('Throws an HttpFormattedException when the addBookmark service method throws one', async () => {
+      jest.spyOn(bookmarkService, 'removeBookmarkOrThrow').mockImplementation(async () => {
+        throw new HttpFormattedException({
+          error: '',
+          message: [],
+          statusCode: 1,
+        }, 1);
+      });
+
+      expect(() => controller.removeBookmark(req)).rejects.toThrow(HttpFormattedException);
     });
   });
 });
