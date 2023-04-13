@@ -40,7 +40,7 @@ export class BookmarksController {
     description: 'The ID of the deck whose bookmark to be removed',
     name: 'id',
   })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Bookmark removed successfully' })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT, description: 'Bookmark removed successfully' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Deck is not bookmarked on first place or the user is the creator of the deck' })
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Deck does not exist or is marked as deleted' })

@@ -157,7 +157,7 @@ The following validations are applied when creating a deck:
 * The array of flashcards must have a length of 1 or higher.
 * Each side of the flashcard must be between 1 and 150 characters long.
 
-### Getting a deck
+#### Getting a deck
 To get a specific deck, send a GET request to ``/decks/{id}`` (where ``{id}`` is the ID of the deck). The server will return the following JSON for status code 200:
 ```json
 {
@@ -178,7 +178,7 @@ The deck retrieves only flashcards that match its ``version``. In other words, i
 
 If the deck does not exist or is marked as deleted, an ``HttpFormattedException``-based JSON with status code 404 will be returned.
 
-### Getting all decks
+#### Getting all decks
 To get all decks that are not marked as deleted, send a GET request to ``/decks/all``. You will receive a JSON similar to this:
 ```json
 [
@@ -191,15 +191,45 @@ To get all decks that are not marked as deleted, send a GET request to ``/decks/
 ]
 ```
 
-### Deleting a deck
+#### Getting a user's decks
+To get all decks created by a specific user, send a GET request to ``/decks/own`` and attach the user's JWT to the ``Authorization header``. The server will respond with 200 and the following JSON if the user is logged in:
+
+```json
+[
+  {
+    "title": "string",
+    "authorId": 0,
+    "description": "string",
+    "id": 0
+  }
+]
+```
+
+
+#### Deleting a deck
 To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header. The server will respond with 204 for a successful delete or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
 
 **Note:** this will merely mark the deck as deleted, but it will remain in the database. However, it won't be retrieved in any of the API calls whatsoever.
 
-### Editing a deck
+#### Editing a deck
 To edit a deck, send a PUT request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header with the same JSON format as for POST requests to ``/decks``. The server will respond with 204 for a successful edit or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
 
 **Note:** this does not delete any previous flashcards. Rather, the deck's version is incremented and the flashcards in the submission are marked with the new version. Flashcards with older versions are not retrieved in GET requests.
+
+### Bookmarks
+This module handles users' saved decks
+
+#### Adding a bookmark
+In order to bookmark (save) a deck, send a POST request to ``/bookmarks/{id}`` where ``{id}`` is the deck's ID. Upon success, the server responds with status code 201 and an empty object.
+
+The server won't bookmark a deck if the user is not logged in, is the creator of the deck, or has already bookmarked the deck.
+
+#### Deleting a bookmark
+In order to remove a bookmark (unsave) a deck, send a DELETE request to ``/bookmarks/{id}`` where ``{id}`` is the deck's ID. Upon success, the server responds with status code 204.
+
+The server won't remove a bookmark if the user is not logged in, is the creator of the deck, or has not bookmarked the deck on first place.
+
+**Note:** this merely marks the bookmark as deleted, but it otherwise remains in the database. However, the bookmark API calls won't retrieve any bookmarks that are marked as deleted.
 
 ## Custom validators
 ### ``UniqueUsername``
@@ -231,6 +261,11 @@ This guard aborts requests that do not have a valid JWT attached to the ``Author
 
 ### IsCreator
 This guard aborts requests from users that are not the creators of the given deck.
+
+This guard can be applied to any route with an ``id`` variable. The guard does not check if the JWT is valid and must be paired with ``IsLoggedIn`` to prevent errors. It does, however, check if the deck does not exist and will throw a 404 error instead of 403 in this case.
+
+### IsNotCreator
+This guard aborts requests from users that are the creators of the given deck.
 
 This guard can be applied to any route with an ``id`` variable. The guard does not check if the JWT is valid and must be paired with ``IsLoggedIn`` to prevent errors. It does, however, check if the deck does not exist and will throw a 404 error instead of 403 in this case.
 

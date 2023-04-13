@@ -12,7 +12,7 @@ import { useContainer } from 'class-validator';
 import { GetDeckDto } from '../src/modules/decks/dto/get-deck.dto';
 import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
 
-describe('AppController (e2e)', () => {
+describe('DecksController (e2e)', () => {
   let app: INestApplication;
   let server: any;
 
