@@ -6,6 +6,7 @@ import { IAuthBody, IDeckSubmission, IDeckSubmissionSuccess } from './util/inter
 import { ICreatedSession, IHttpError, IUser } from '../src/interfaces';
 import { validationRules } from '../src/constants/validationRules';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
+import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
 
 describe('BookmarkController (e2e)', () => {
   let app: INestApplication;
@@ -31,7 +32,7 @@ describe('BookmarkController (e2e)', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule, ...TypeOrmSQLITETestingModule()],
     }).compile();
 
     app = moduleFixture.createNestApplication();
