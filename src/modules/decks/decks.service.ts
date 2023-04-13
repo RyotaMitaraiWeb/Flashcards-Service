@@ -11,6 +11,7 @@ import { CreateFlashcardDto } from '../flashcards/dto/create-flashcard.dto';
 import { Flashcard } from '../flashcards/entities/flashcard.entity';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
+import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 
 @Injectable()
 export class DecksService {
@@ -74,7 +75,7 @@ export class DecksService {
     }
 
     deck.flashcards = this.removeFlashcardsThatDoNotMatchDeckVersion(deck.version, deck.flashcards);
-    const dto = this.ToGetDeckDto(deck);
+    const dto = DtoTransformer.toGetDeckDto(deck);
     return dto;
   }
 
@@ -136,7 +137,7 @@ export class DecksService {
       }
     });
 
-    const allDecks = decks.map(d => this.ToAllDecksDto(d));
+    const allDecks = decks.map(d => DtoTransformer.toAllDecksDto(d));
     return allDecks;
   }
 
@@ -154,7 +155,7 @@ export class DecksService {
       }
     });
 
-    const decksDto = decks.map(d => this.ToAllDecksDto(d));
+    const decksDto = decks.map(d => DtoTransformer.toAllDecksDto(d));
     return decksDto;
   }
   
@@ -227,40 +228,5 @@ export class DecksService {
    */
   private removeFlashcardsThatDoNotMatchDeckVersion(deckVersion: number, flashcards: Flashcard[]) {
     return flashcards.filter(f => f.version === deckVersion);
-  }
-
-  /**
-   * Converts a ``Deck`` object to a ``GetDeckDto`` object.
-   * @param deck the ``Deck`` to be transformed
-   * @returns a ``GetDeckDto`` representation of ``deck``
-   */
-  private ToGetDeckDto(deck: Deck): GetDeckDto {
-    const dto = new GetDeckDto();
-    dto.title = deck.title;
-    dto.id = deck.id;
-    dto.flashcards = deck.flashcards.map(f => {
-      return {
-        front: f.front,
-        back: f.back
-      };
-    });
-    dto.description = deck.description;
-    dto.authorId = deck.authorId;
-
-    return dto;
-  }
-
-  /**
-   * @param deck the ``Deck`` to be transformed
-   * @returns an ``AllDecksDto`` representation of the ``deck``
-   */
-  private ToAllDecksDto(deck: Deck): AllDecksDto {
-    const dto = new AllDecksDto();
-    dto.title = deck.title;
-    dto.authorId = deck.authorId;
-    dto.description = deck.description;
-    dto.id = deck.id;
-
-    return dto;
   }
 }

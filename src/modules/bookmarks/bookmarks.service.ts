@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { Deck } from '../decks/entities/deck.entity';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
+import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 
 @Injectable()
 export class BookmarksService {
@@ -39,7 +40,7 @@ export class BookmarksService {
 
     await this.bookmarkRepository.save(bookmark);
 
-    const dto = this.toBookmarkDto(bookmark);
+    const dto = DtoTransformer.toBookmarkDto(bookmark);
     return dto;
   }
 
@@ -65,7 +66,7 @@ export class BookmarksService {
     bookmark.isDeleted = true;
     await this.bookmarkRepository.save(bookmark);
 
-    const dto = this.toBookmarkDto(bookmark);
+    const dto = DtoTransformer.toBookmarkDto(bookmark);
     return dto;
   }
 
@@ -92,18 +93,5 @@ export class BookmarksService {
     });
 
     return bookmark;
-  }
-
-  /**
-   * Converts a ``Bookmark`` object to a ``BookmarkDto`` object.
-   * @param bookmark 
-   * @returns a ``BookmarkDto`` representation of ``bookmark``
-   */
-  private toBookmarkDto(bookmark: Bookmark): BookmarkDto {
-    const dto = new BookmarkDto();
-    dto.deckId = bookmark.deckId;
-    dto.userId = bookmark.userId;
-
-    return dto;
   }
 }
