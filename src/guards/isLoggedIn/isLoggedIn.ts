@@ -1,11 +1,11 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
-import { IRequest } from '../interfaces';
-import { extractTokenFromHeader } from '../util/extractTokenFromHeader/extractTokenFromHeader';
-import { HttpFormattedException } from '../util/HttpFormattedException';
-import { invalidActionsMessages } from '../constants/invalidActionsMessages';
-import { jwtBlacklist } from '../modules/accounts/jwtBlacklist';
+import { IRequest } from '../../interfaces';
+import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
+import { HttpFormattedException } from '../../util/HttpFormattedException';
+import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
+import { jwtBlacklist } from '../../modules/accounts/jwtBlacklist';
 
 /**
  * This guard blocks requests that do not provide a valid JWT in the ``Authorization`` header

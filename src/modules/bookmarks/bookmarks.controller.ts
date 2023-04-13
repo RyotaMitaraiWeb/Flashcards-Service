@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, HttpCode } from '@nestjs/common';
 import { BookmarksService } from './bookmarks.service';
 import { BookmarkDto } from './dto/bookmark.dto';
-import { IsLoggedInGuard } from '../../guards/isLoggedIn';
+import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IsNotCreatorGuard } from '../../guards/isNotCreator';
+import { IsNotCreatorGuard } from '../../guards/isNotCreator/isNotCreator';
 import { IRequest } from '../../interfaces';
 
 @ApiTags('bookmarks')
@@ -51,5 +51,12 @@ export class BookmarksController {
 
     await this.bookmarksService.removeBookmarkOrThrow(userId, deckId);
     return {};
+  }
+
+  @Get()
+  @ApiResponse({ status: HttpStatus.OK, description: 'Bookmark removed successfully' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
+  async getSavedDecks(@Req() req: IRequest) {
+    const userId = Number(req.params['id']);
   }
 }

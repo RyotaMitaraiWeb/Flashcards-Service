@@ -3,12 +3,12 @@ import { Controller, Post, HttpException, Body, Delete,
   Headers, Param, Get,
  } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IsGuestGuard } from '../../guards/isGuest';
+import { IsGuestGuard } from '../../guards/isGuest/isGuest';
 import { AccountsService } from './accounts.service';
 import { RegisterDto } from './dto/register-dto';
 import { LoginDto } from './dto/login-dto';
 import { ICreatedSession, IRequestHeaders, IUsernameExistsRequestParams } from '../../interfaces';
-import { IsLoggedInGuard } from '../../guards/isLoggedIn';
+import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
 
 @ApiBearerAuth('jwt')
 @ApiTags('accounts')

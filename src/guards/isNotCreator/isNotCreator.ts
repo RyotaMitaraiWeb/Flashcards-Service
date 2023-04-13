@@ -1,12 +1,12 @@
 import { Injectable, CanActivate, ExecutionContext, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
-import { IRequest, IUser } from '../interfaces';
-import { extractTokenFromHeader } from '../util/extractTokenFromHeader/extractTokenFromHeader';
-import { HttpFormattedException } from '../util/HttpFormattedException';
-import { invalidActionsMessages } from '../constants/invalidActionsMessages';
+import { IRequest, IUser } from '../../interfaces';
+import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
+import { HttpFormattedException } from '../../util/HttpFormattedException';
+import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Deck } from '../modules/decks/entities/deck.entity';
+import { Deck } from '../../modules/decks/entities/deck.entity';
 import { Repository } from 'typeorm';
 
 /**

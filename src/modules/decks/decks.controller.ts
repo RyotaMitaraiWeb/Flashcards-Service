@@ -3,9 +3,9 @@ import { DecksService } from './decks.service';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRequest } from '../../interfaces';
-import { IsLoggedInGuard } from '../../guards/isLoggedIn';
+import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
 import { GetDeckDto } from './dto/get-deck.dto';
-import { IsCreatorGuard } from '../../guards/isCreator';
+import { IsCreatorGuard } from '../../guards/isCreator/isCreator';
 import { EditDeckDto } from './dto/edit-deck.dto';
 
 @Controller('decks')
