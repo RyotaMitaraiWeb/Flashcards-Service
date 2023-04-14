@@ -11,6 +11,10 @@ import { validationRules } from '../src/constants/validationRules';
 import { useContainer } from 'class-validator';
 import { GetDeckDto } from '../src/modules/decks/dto/get-deck.dto';
 import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
+import { AccountsModule } from '../src/modules/accounts/accounts.module';
+import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
+import { DecksModule } from '../src/modules/decks/decks.module';
+import { classValidatorContainer } from './util/classValidatorContainer';
 
 describe('DecksController (e2e)', () => {
   let app: INestApplication;
@@ -29,12 +33,12 @@ describe('DecksController (e2e)', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [...TypeOrmSQLITETestingModule(), AppModule],
+      imports: [AccountsModule, BookmarksModule, DecksModule, ...TypeOrmSQLITETestingModule()],
     }).compile();
 
     app = moduleFixture.createNestApplication();
 
-    useContainer(app.select(AppModule), { fallbackOnErrors: true });
+    classValidatorContainer(app);
     app.useGlobalPipes(new ValidationPipe());
 
     await app.init();

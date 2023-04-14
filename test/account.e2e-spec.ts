@@ -13,6 +13,9 @@ import { useContainer } from 'class-validator';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
 import { ICreatedSession, IUser } from '../src/interfaces';
 import { jwtBlacklist } from '../src/modules/accounts/jwtBlacklist';
+import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
+import { DecksModule } from '../src/modules/decks/decks.module';
+import { classValidatorContainer } from './util/classValidatorContainer';
 
 describe('Account controller (E2E)', () => {
   let app: INestApplication;
@@ -28,7 +31,7 @@ describe('Account controller (E2E)', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [...TypeOrmSQLITETestingModule(), AccountsModule],
+      imports: [...TypeOrmSQLITETestingModule(), AccountsModule, BookmarksModule, DecksModule],
       controllers: [AccountsController],
       providers: [
         AccountsService,
@@ -38,7 +41,7 @@ describe('Account controller (E2E)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    useContainer(app.select(AccountsModule), { fallbackOnErrors: true });
+    classValidatorContainer(app);
     app.useGlobalPipes(new ValidationPipe());
 
     await app.init();

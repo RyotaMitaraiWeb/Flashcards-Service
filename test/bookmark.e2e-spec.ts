@@ -7,6 +7,10 @@ import { ICreatedSession, IHttpError, IUser } from '../src/interfaces';
 import { validationRules } from '../src/constants/validationRules';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
 import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
+import { AccountsModule } from '../src/modules/accounts/accounts.module';
+import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
+import { DecksModule } from '../src/modules/decks/decks.module';
+import { classValidatorContainer } from './util/classValidatorContainer';
 
 describe('BookmarkController (e2e)', () => {
   let app: INestApplication;
@@ -30,12 +34,16 @@ describe('BookmarkController (e2e)', () => {
     username: '',
   };
 
+  process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
+
+
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, ...TypeOrmSQLITETestingModule()],
+      imports: [AccountsModule, BookmarksModule, DecksModule, ...TypeOrmSQLITETestingModule()],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    classValidatorContainer(app);
     await app.init();
     server = app.getHttpServer();
 
