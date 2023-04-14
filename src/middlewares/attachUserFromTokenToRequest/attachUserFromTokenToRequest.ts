@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
-import { IRequest, IUser } from '../interfaces';
+import { IRequest, IUser } from '../../interfaces';
 import { NextFunction } from 'express';
-import { extractTokenFromHeader } from '../util/extractTokenFromHeader/extractTokenFromHeader';
+import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
 import { JwtService } from '@nestjs/jwt';
 
 /**

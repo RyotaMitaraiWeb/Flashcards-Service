@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { BookmarksService } from './bookmarks.service';
 import { BookmarksController } from './bookmarks.controller';
-import { AttachUserFromTokenToRequestMiddleware } from '../../middlewares/attachUserFromTokenToRequest';
+import { AttachUserFromTokenToRequestMiddleware } from '../../middlewares/attachUserFromTokenToRequest/attachUserFromTokenToRequest';
 import { JwtService } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deck } from '../decks/entities/deck.entity';

@@ -4,7 +4,7 @@ import { DecksController } from './decks.controller';
 import { FlashcardsService } from '../flashcards/flashcards.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deck } from './entities/deck.entity';
-import { AttachUserFromTokenToRequestMiddleware } from '../../middlewares/attachUserFromTokenToRequest';
+import { AttachUserFromTokenToRequestMiddleware } from '../../middlewares/attachUserFromTokenToRequest/attachUserFromTokenToRequest';
 import { JwtService } from '@nestjs/jwt';
 
 @Module({
