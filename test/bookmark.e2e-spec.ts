@@ -11,11 +11,13 @@ import { AccountsModule } from '../src/modules/accounts/accounts.module';
 import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../src/modules/decks/decks.module';
 import { classValidatorContainer } from './util/classValidatorContainer';
+import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
 
 describe('BookmarkController (e2e)', () => {
   let app: INestApplication;
 
   let bookmarkEndpoint = (endpoint: string | number) => `/bookmarks/${endpoint}`;
+  let bookmarkGetEndpoint = '/bookmarks';
   let server: any;
 
   let token1 = '';
@@ -35,7 +37,6 @@ describe('BookmarkController (e2e)', () => {
   };
 
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
-
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -216,6 +217,42 @@ describe('BookmarkController (e2e)', () => {
 
       const errors: IHttpError = result.body;
       expect(errors.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
+    });
+  });
+
+  describe('/bookmarks (GET)', () => {
+    it('Returns the user\'s bookmarks', async () => {
+      await request(server)
+        .post(bookmarkEndpoint(1))
+        .set('Authorization', token2);
+
+      const result = await request(server)
+        .get(bookmarkGetEndpoint)
+        .set('Authorization', token2)
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res.length).toBe(1);
+      expect(res[0].id).toBe(deckId1);
+    });
+
+    it('Returns an empty array if the user has not bookmarked any decks', async () => {
+      const result = await request(server)
+        .get(bookmarkGetEndpoint)
+        .set('Authorization', token2)
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res).toEqual([]);
+    });
+
+    it('Returns 401 if the user is not logged in', async () => {
+      const result = await request(server)
+        .get(bookmarkGetEndpoint)
+        .expect(HttpStatus.UNAUTHORIZED);
+
+      const res: IHttpError = result.body;
+      expect(res.message.includes(invalidActionsMessages.isNotLoggedIn)).toBe(true);
     });
   });
 

@@ -9,6 +9,8 @@ import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
+import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
+import { AllDecksDto } from '../decks/dto/all-decks-dto';
 
 describe('BookmarksService', () => {
   let service: BookmarksService;
@@ -87,6 +89,36 @@ describe('BookmarksService', () => {
 
       expect(() => service.removeBookmarkOrThrow(expectedBookmark.userId, expectedBookmark.deckId))
         .rejects.toThrow(HttpForbiddenException);
+    });
+  });
+
+  describe('findUserBookmarks', () => {
+    const deck = new Deck();
+    deck.authorId = 1;
+    deck.id = 1;
+    deck.title = 'a';
+    deck.description = '';
+
+    const dto = DtoTransformer.toAllDecksDto(deck);
+
+    it('Returns an array of AllDecksDto when successful', async () => {
+      jest.spyOn(bookmarkRepository, 'find').mockImplementation(async () => {
+        const bookmark = new Bookmark();
+        bookmark.deck = deck;
+        return [bookmark]
+      });
+
+      const result = await service.findUserBookmarks(deck.authorId);
+
+      expect(result).toEqual<AllDecksDto[]>([dto]);
+    });
+
+    it('Works normally if the repository returns an empty array', async () => {
+      jest.spyOn(bookmarkRepository, 'find').mockImplementation(async () => []);
+
+      const result = await service.findUserBookmarks(deck.authorId);
+
+      expect(result).toEqual<AllDecksDto[]>([]);
     });
   });
 });

@@ -10,6 +10,7 @@ import { IRequest } from '../../interfaces';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { AllDecksDto } from '../decks/dto/all-decks-dto';
 
 const req: IRequest = {
   headers: {},
@@ -82,6 +83,21 @@ describe('BookmarksController', () => {
       });
 
       expect(() => controller.removeBookmark(req)).rejects.toThrow(HttpNotFoundException);
+    });
+  });
+
+  describe('getSavedDecks', () => {
+    const dto = new AllDecksDto();
+    dto.authorId = req.user.id;
+    dto.description = '';
+    dto.id = 1;
+    dto.title = 'a';
+    
+    it('Returns whatever the findUserBookmarks service method returns', async () => {
+      jest.spyOn(bookmarkService, 'findUserBookmarks').mockImplementation(async () => [dto]);
+
+      const result = await controller.getSavedDecks(req);
+      expect(result).toEqual<AllDecksDto[]>([dto]);
     });
   });
 });

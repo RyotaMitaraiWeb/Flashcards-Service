@@ -5,11 +5,11 @@ import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsNotCreatorGuard } from '../../guards/isNotCreator/isNotCreator';
 import { IRequest } from '../../interfaces';
+import { AllDecksDto } from '../decks/dto/all-decks-dto';
 
 @ApiTags('bookmarks')
 @ApiBearerAuth('jwt')
 @Controller('bookmarks')
-@ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'The JWT is of the creator of the deck' })
 export class BookmarksController {
   constructor(private readonly bookmarksService: BookmarksService) {}
 
@@ -54,9 +54,13 @@ export class BookmarksController {
   }
 
   @Get()
-  @ApiResponse({ status: HttpStatus.OK, description: 'Bookmark removed successfully' })
+  @UseGuards(IsLoggedInGuard)
+  @ApiResponse({ status: HttpStatus.OK, description: 'Request is valid' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
-  async getSavedDecks(@Req() req: IRequest) {
-    const userId = Number(req.params['id']);
+  async getSavedDecks(@Req() req: IRequest): Promise<AllDecksDto[]> {
+    const userId = Number(req?.user.id) || 0;
+    const decks = await this.bookmarksService.findUserBookmarks(userId);
+
+    return decks;
   }
 }

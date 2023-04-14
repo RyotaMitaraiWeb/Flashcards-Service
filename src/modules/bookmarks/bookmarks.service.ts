@@ -9,6 +9,7 @@ import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
+import { AllDecksDto } from '../decks/dto/all-decks-dto';
 
 @Injectable()
 export class BookmarksService {
@@ -57,6 +58,29 @@ export class BookmarksService {
 
     const dto = DtoTransformer.toBookmarkDto(bookmark);
     return dto;
+  }
+
+  async findUserBookmarks(userId: number): Promise<AllDecksDto[]> {
+    const bookmarks = await this.bookmarkRepository.find({
+      where: {
+        isDeleted: false,
+        userId,
+      },
+      select: {
+        deck: {
+          title: true,
+          description: true,
+          id: true,
+          authorId: true,
+        },
+      },
+      relations: {
+        deck: true,
+      }
+    });
+
+    const decks = bookmarks.map(b => DtoTransformer.toAllDecksDto(b.deck));
+    return decks;
   }
 
   /**
