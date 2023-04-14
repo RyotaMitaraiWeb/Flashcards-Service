@@ -12,6 +12,7 @@ import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extractTokenFromHeader';
 import { jwtBlacklist } from './jwtBlacklist';
 import { ICreatedSession, IUser } from '../../interfaces';
+import { HttpUnauthorizedException } from '../../util/exceptions/HttpUnauthorizedException';
 
 @Injectable()
 export class AccountsService {
@@ -59,11 +60,7 @@ export class AccountsService {
 
       return userDto;
     } catch (err: any) {
-      throw new HttpFormattedException({
-        statusCode: HttpStatus.UNAUTHORIZED,
-        message: [invalidActionsMessages.failedLogin],
-        error: 'Unauthorized',
-      }, HttpStatus.UNAUTHORIZED);
+      throw new HttpUnauthorizedException(invalidActionsMessages.failedLogin);
     }
   }
 

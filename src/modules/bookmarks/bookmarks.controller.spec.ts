@@ -9,6 +9,7 @@ import { Deck } from '../decks/entities/deck.entity';
 import { IRequest } from '../../interfaces';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 
 const req: IRequest = {
   headers: {},
@@ -58,16 +59,12 @@ describe('BookmarksController', () => {
       expect(result).toEqual({});
     });
 
-    it('Throws an HttpFormattedException when the addBookmark service method throws one', async () => {
+    it('Throws an HttpFormattedException-based exception when the addBookmark service method throws one', async () => {
       jest.spyOn(bookmarkService, 'addBookmarkOrThrow').mockImplementation(async () => {
-        throw new HttpFormattedException({
-          error: '',
-          message: [],
-          statusCode: 1,
-        }, 1);
+        throw new HttpNotFoundException('a');
       });
 
-      expect(() => controller.addBookmark(req)).rejects.toThrow(HttpFormattedException);
+      expect(() => controller.addBookmark(req)).rejects.toThrow(HttpNotFoundException);
     });
   });
 
@@ -79,16 +76,12 @@ describe('BookmarksController', () => {
       expect(result).toEqual({});
     });
 
-    it('Throws an HttpFormattedException when the addBookmark service method throws one', async () => {
+    it('Throws an HttpFormattedException-based exception when the addBookmark service method throws one', async () => {
       jest.spyOn(bookmarkService, 'removeBookmarkOrThrow').mockImplementation(async () => {
-        throw new HttpFormattedException({
-          error: '',
-          message: [],
-          statusCode: 1,
-        }, 1);
+        throw new HttpNotFoundException('a');
       });
 
-      expect(() => controller.removeBookmark(req)).rejects.toThrow(HttpFormattedException);
+      expect(() => controller.removeBookmark(req)).rejects.toThrow(HttpNotFoundException);
     });
   });
 });

@@ -12,6 +12,7 @@ import { Flashcard } from '../flashcards/entities/flashcard.entity';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 
 @Injectable()
 export class DecksService {
@@ -67,11 +68,7 @@ export class DecksService {
     });
 
     if (!deck) {
-      throw new HttpFormattedException({
-        message: [invalidActionsMessages.deckDoesNotExist],
-        error: 'Not Found',
-        statusCode: HttpStatus.NOT_FOUND,
-      }, HttpStatus.NOT_FOUND)
+      throw new HttpNotFoundException(invalidActionsMessages.deckDoesNotExist);
     }
 
     deck.flashcards = this.removeFlashcardsThatDoNotMatchDeckVersion(deck.version, deck.flashcards);
@@ -190,11 +187,7 @@ export class DecksService {
       return deck;
     }
 
-    throw new HttpFormattedException({
-      message: [invalidActionsMessages.deckDoesNotExist],
-      error: 'Not Found',
-      statusCode: HttpStatus.NOT_FOUND,
-    }, HttpStatus.NOT_FOUND);
+    throw new HttpNotFoundException(invalidActionsMessages.deckDoesNotExist);
   }
 
   /**

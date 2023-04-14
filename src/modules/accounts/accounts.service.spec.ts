@@ -13,6 +13,8 @@ import { HttpFormattedException } from '../../util/HttpFormattedException';
 import * as extractTokenFromHeader from '../../util/extractTokenFromHeader/extractTokenFromHeader';
 import { jwtBlacklist } from './jwtBlacklist';
 import { ICreatedSession, IUser } from '../../interfaces';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { HttpUnauthorizedException } from '../../util/exceptions/HttpUnauthorizedException';
 
 describe('AccountsService', () => {
   let service: AccountsService;
@@ -123,17 +125,17 @@ describe('AccountsService', () => {
       expect(loggedInUser).toEqual(expectedUser);
     });
 
-    it('Throws an error if "findOneById" returns null', async () => {
+    it('Throws an HttpUnauthorizedException if "findOneById" returns null', async () => {
       jest.spyOn(repository, 'findOneById').mockImplementation(async () => null);
       jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
 
       const login = new LoginDto();
       login.username = 'ryota1';
       login.password = '123456';
-      expect(() => service.login(login)).rejects.toThrowError(HttpFormattedException);
+      expect(() => service.login(login)).rejects.toThrowError(HttpUnauthorizedException);
     });
 
-    it('Throws an error if bcrypt.compare returns false', async () => {
+    it('Throws an HttpUnauthorizedException if bcrypt.compare returns false', async () => {
       jest.spyOn(repository, 'findOneBy').mockImplementation(async () => {
         const account = new Account();
         account.id = 1;
@@ -147,7 +149,7 @@ describe('AccountsService', () => {
       const login = new LoginDto();
       login.username = 'ryota1';
       login.password = 'wrongpassword';
-      expect(() => service.login(login)).rejects.toThrowError(HttpFormattedException);
+      expect(() => service.login(login)).rejects.toThrowError(HttpUnauthorizedException);
     });
   });
 

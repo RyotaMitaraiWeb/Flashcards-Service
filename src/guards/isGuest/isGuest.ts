@@ -7,6 +7,7 @@ import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extrac
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { jwtBlacklist } from '../../modules/accounts/jwtBlacklist';
+import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 
 /**
  * This guard blocks requests that provide a valid JWT in the ``Authorization`` header
@@ -32,11 +33,7 @@ export class IsGuestGuard implements CanActivate {
       return true;
     }
 
-    throw new HttpFormattedException({
-      statusCode: HttpStatus.FORBIDDEN,
-      message: [invalidActionsMessages.isNotLoggedOut],
-      error: 'Forbidden'
-    }, HttpStatus.FORBIDDEN);
+    throw new HttpForbiddenException(invalidActionsMessages.isNotLoggedOut)
   }
 
 }

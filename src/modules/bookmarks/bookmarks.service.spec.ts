@@ -7,6 +7,8 @@ import { Bookmark } from './entities/bookmark.entity';
 import { Repository } from 'typeorm';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 
 describe('BookmarksService', () => {
   let service: BookmarksService;
@@ -49,11 +51,11 @@ describe('BookmarksService', () => {
       expect(result).toEqual<BookmarkDto>(expectedBookmark);
     });
 
-    it('Throws an HttpFormattedException if the repository finds an existing bookmark', async () => {
+    it('Throws an HttpForbiddenException if the repository finds an existing bookmark', async () => {
       jest.spyOn(bookmarkRepository, 'findOne').mockImplementation(async () => new Bookmark());
 
       expect(() => service.addBookmarkOrThrow(expectedBookmark.userId, expectedBookmark.deckId))
-        .rejects.toThrow(HttpFormattedException);
+        .rejects.toThrow(HttpForbiddenException);
     });
   });
 
@@ -80,11 +82,11 @@ describe('BookmarksService', () => {
       expect(result).toEqual<BookmarkDto>(expectedBookmark);
     });
 
-    it('Throws an HttpFormattedException if the repository does not find an existing bookmark', async () => {
+    it('Throws an HttpForbiddenException if the repository does not find an existing bookmark', async () => {
       jest.spyOn(bookmarkRepository, 'findOne').mockImplementation(async () => null);
 
       expect(() => service.removeBookmarkOrThrow(expectedBookmark.userId, expectedBookmark.deckId))
-        .rejects.toThrow(HttpFormattedException);
+        .rejects.toThrow(HttpForbiddenException);
     });
   });
 });

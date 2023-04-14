@@ -12,6 +12,7 @@ import { GetDeckDto } from './dto/get-deck.dto';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 
 describe('DecksController', () => {
   let controller: DecksController;
@@ -101,16 +102,12 @@ describe('DecksController', () => {
       expect(deck).toEqual(expectedDeck);
     });
 
-    it('Throws an HttpFormattedException when service throws the same error', async () => {
+    it('Throws an HttpFormattedException-based exception when service throws the same error', async () => {
       jest.spyOn(deckService, 'findDeckById').mockImplementation(async () => {
-        throw new HttpFormattedException({
-          error: '',
-          message: [],
-          statusCode: 1,
-        }, 1);
+        throw new HttpNotFoundException('a');
       });
 
-      expect(() => controller.findById(1)).rejects.toThrow(HttpFormattedException);
+      expect(() => controller.findById(1)).rejects.toThrow(HttpNotFoundException);
     });
   });
 
@@ -124,17 +121,13 @@ describe('DecksController', () => {
       expect(id).toEqual<object>({});
     });
 
-    it('Throws an HttpFormatted exception if deleteDeckOrThrow throws one', async () => {
+    it('Throws an HttpFormattedException-based exception if deleteDeckOrThrow throws one', async () => {
       const deckId = 1;
       jest.spyOn(deckService, 'deleteDeckOrThrow').mockImplementation(async () => {
-        throw new HttpFormattedException({
-          error: 'a',
-          message: [],
-          statusCode: 1,
-        }, 1);
+        throw new HttpNotFoundException('a');
       });
 
-      expect(() => controller.deleteDeck(deckId)).rejects.toThrow(HttpFormattedException);
+      expect(() => controller.deleteDeck(deckId)).rejects.toThrow(HttpNotFoundException);
     });
   });
 
@@ -147,16 +140,12 @@ describe('DecksController', () => {
       expect(result).toEqual({});
     });
 
-    it('Throws an HttpFormattedException if updateDeck throws one', async () => {
+    it('Throws an HttpFormattedException-based exception if updateDeck throws one', async () => {
       jest.spyOn(deckService, 'updateDeck').mockImplementation(async () => {
-        throw new HttpFormattedException({
-          error: 'a',
-          message: [],
-          statusCode: 1,
-        }, 1);
+        throw new HttpNotFoundException('a');
       });
 
-      expect(() => controller.editDeck(1, new EditDeckDto())).rejects.toThrow(HttpFormattedException);
+      expect(() => controller.editDeck(1, new EditDeckDto())).rejects.toThrow(HttpNotFoundException);
     });
   });
 

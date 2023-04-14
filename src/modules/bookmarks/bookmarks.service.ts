@@ -8,6 +8,7 @@ import { Deck } from '../decks/entities/deck.entity';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
+import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 
 @Injectable()
 export class BookmarksService {
@@ -25,13 +26,7 @@ export class BookmarksService {
   async addBookmarkOrThrow(userId: number, deckId: number): Promise<BookmarkDto> {
     const existingBookmark = await this.findBookmarkedDeck(userId, deckId);
     if (existingBookmark) {
-      throw new HttpFormattedException(
-        {
-          error: 'Forbidden',
-          statusCode: HttpStatus.FORBIDDEN,
-          message: [invalidActionsMessages.hasAlreadyBookmarked]
-        }, HttpStatus.FORBIDDEN
-      );
+      throw new HttpForbiddenException(invalidActionsMessages.hasAlreadyBookmarked)
     }
 
     const bookmark = new Bookmark();
@@ -54,13 +49,7 @@ export class BookmarksService {
   async removeBookmarkOrThrow(userId: number, deckId: number): Promise<BookmarkDto> {
     const bookmark = await this.findBookmarkedDeck(userId, deckId);
     if (!bookmark) {
-      throw new HttpFormattedException(
-        {
-          error: 'Forbidden',
-          statusCode: HttpStatus.FORBIDDEN,
-          message: [invalidActionsMessages.hasNotBookmarked]
-        }, HttpStatus.FORBIDDEN
-      );
+      throw new HttpForbiddenException(invalidActionsMessages.hasNotBookmarked)
     }
 
     bookmark.isDeleted = true;

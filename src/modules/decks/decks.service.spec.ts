@@ -9,6 +9,7 @@ import { CreateDeckDto } from './dto/create-deck.dto';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 
 describe('DecksService', () => {
   let service: DecksService;
@@ -92,9 +93,9 @@ describe('DecksService', () => {
       });
     });
 
-    it('Throws an HttpFormattedException if deckRepository.findOne returns null', async () => {
+    it('Throws an HttpNotFoundException exception if deckRepository.findOne returns null', async () => {
       jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
-      expect(() => service.findDeckById(0)).rejects.toThrow(HttpFormattedException);
+      expect(() => service.findDeckById(0)).rejects.toThrow(HttpNotFoundException);
     });
   });
 
@@ -111,11 +112,11 @@ describe('DecksService', () => {
       expect(result).toBe<number>(deckId);
     });
 
-    it('Throws an HttpFormattedException if findOne returns null', async () => {
+    it('Throws an HttpNotFoundException if findOne returns null', async () => {
       const deckId = 1;
       jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
 
-      expect(() => service.deleteDeckOrThrow(deckId)).rejects.toThrow(HttpFormattedException);
+      expect(() => service.deleteDeckOrThrow(deckId)).rejects.toThrow(HttpNotFoundException);
     });
   });
 
@@ -149,10 +150,10 @@ describe('DecksService', () => {
       expect(result).toBe<number>(id);
     });
 
-    it('Throws an HttpFormattedException when the deck cannot be found', async () => {
+    it('Throws an HttpNotFoundException when the deck cannot be found', async () => {
       jest.spyOn(deckRepository, 'findOne').mockImplementation(async () => null);
 
-      expect(() => service.updateDeck(1, new EditDeckDto())).rejects.toThrow(HttpFormattedException);
+      expect(() => service.updateDeck(1, new EditDeckDto())).rejects.toThrow(HttpNotFoundException);
     });
   });
 

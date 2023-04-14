@@ -9,6 +9,8 @@ import { jwtBlacklist } from '../../modules/accounts/jwtBlacklist';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Deck } from '../../modules/decks/entities/deck.entity';
 import { Repository } from 'typeorm';
+import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 
 /**
  * This guard blocks requests from users that are not the creators of the given deck. This guard only
@@ -43,19 +45,12 @@ export class IsCreatorGuard implements CanActivate {
     });
 
     if (!deck) {
-      throw new HttpFormattedException({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: [invalidActionsMessages.deckDoesNotExist],
-        error: 'Not Found',
-      }, HttpStatus.NOT_FOUND);
+      throw new HttpNotFoundException(invalidActionsMessages.deckDoesNotExist)
+
     }
 
     if (deck.authorId !== user.id) {
-      throw new HttpFormattedException({
-        statusCode: HttpStatus.FORBIDDEN,
-        message: [invalidActionsMessages.isNotCreator],
-        error: 'Forbidden',
-      }, HttpStatus.FORBIDDEN);
+      throw new HttpForbiddenException(invalidActionsMessages.isNotCreator)
     }
 
     return true;

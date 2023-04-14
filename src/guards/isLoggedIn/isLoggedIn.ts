@@ -6,6 +6,7 @@ import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extrac
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { jwtBlacklist } from '../../modules/accounts/jwtBlacklist';
+import { HttpUnauthorizedException } from '../../util/exceptions/HttpUnauthorizedException';
 
 /**
  * This guard blocks requests that do not provide a valid JWT in the ``Authorization`` header
@@ -29,11 +30,7 @@ export class IsLoggedInGuard implements CanActivate {
 
       return true;
     } catch (err: any) {
-      throw new HttpFormattedException({
-        error: 'Unauthorized',
-        statusCode: HttpStatus.UNAUTHORIZED,
-        message: [invalidActionsMessages.isNotLoggedIn]
-      }, HttpStatus.UNAUTHORIZED);
+      throw new HttpUnauthorizedException(invalidActionsMessages.isNotLoggedIn);
     }
   }
 
