@@ -1,9 +1,8 @@
-import { IsArray, IsString, MaxLength, MinLength, Validate, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsString, Length, MaxLength, MinLength, Validate, ValidateNested } from 'class-validator';
 import { CreateFlashcardDto } from '../../flashcards/dto/create-flashcard.dto';
 import { validationRules } from '../../../constants/validationRules';
 import { validationMessages } from '../../../constants/validationMessages';
 import { ApiProperty } from '@nestjs/swagger';
-import { FlashcardsAmountValidator } from '../../../custom-validators/flashcardsAmount';
 import { Type } from 'class-transformer';
 
 /**
@@ -44,13 +43,17 @@ export class CreateDeckDto {
   })
   description: string;
 
-  @IsArray()
+  @IsArray({
+    message: validationMessages.deck.flashcards.notEnoughFlashcards
+  })
   @ValidateNested()
-  @Validate(FlashcardsAmountValidator)
+  @ArrayMinSize(validationRules.deck.flashcards.minimumFlashcards, {
+    message: validationMessages.deck.flashcards.notEnoughFlashcards,
+  })
   @Type(() => CreateFlashcardDto)
   @ApiProperty({
     description: `An array of flashcards. Must have at least ${validationRules.deck.flashcards.minimumFlashcards} flashcard(s)`,
     type: [CreateFlashcardDto],
   })
-  flashcards: CreateFlashcardDto[]
+  flashcards: CreateFlashcardDto[];
 }
