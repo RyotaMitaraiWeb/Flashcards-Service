@@ -13,6 +13,7 @@ import { extractTokenFromHeader } from '../../util/extractTokenFromHeader/extrac
 import { jwtBlacklist } from './jwtBlacklist';
 import { ICreatedSession, IUser } from '../../interfaces';
 import { HttpUnauthorizedException } from '../../util/exceptions/HttpUnauthorizedException';
+import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 
 @Injectable()
 export class AccountsService {
@@ -36,9 +37,7 @@ export class AccountsService {
 
     const result = await this.accountRepository.save(account);
 
-    const user = new UserDto();
-    user.id = result.id;
-    user.username = result.username;
+    const user = DtoTransformer.toUserDto(result)
 
     return user;
   }
@@ -54,10 +53,7 @@ export class AccountsService {
       const account = await this.findUserByUsernameOrThrow(username);
       await this.checkIfPasswordMatchesOrThrow(account, password);
 
-      const userDto = new UserDto();
-      userDto.id = account.id;
-      userDto.username = account.username;
-
+      const userDto = DtoTransformer.toUserDto(account);
       return userDto;
     } catch (err: any) {
       throw new HttpUnauthorizedException(invalidActionsMessages.failedLogin);

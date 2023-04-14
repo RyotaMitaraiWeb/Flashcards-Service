@@ -1,3 +1,5 @@
+import { UserDto } from '../../modules/accounts/dto/user-dto';
+import { Account } from '../../modules/accounts/entities/account.entity';
 import { BookmarkDto } from '../../modules/bookmarks/dto/bookmark.dto';
 import { Bookmark } from '../../modules/bookmarks/entities/bookmark.entity';
 import { AllDecksDto } from '../../modules/decks/dto/all-decks-dto';
@@ -52,6 +54,17 @@ export abstract class DtoTransformer {
     dto.description = deck.description;
     dto.id = deck.id;
 
+    return dto;
+  }
+
+  /**
+   * @param account 
+   * @returns a ``UserDto`` representation of ``account``
+   */
+  static toUserDto(account: Account): UserDto {
+    const dto = new UserDto();
+    dto.id = account.id;
+    dto.username = account.username;
     return dto;
   }
 }

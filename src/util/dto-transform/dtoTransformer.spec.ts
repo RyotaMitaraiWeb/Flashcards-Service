@@ -1,3 +1,5 @@
+import { UserDto } from '../../modules/accounts/dto/user-dto';
+import { Account } from '../../modules/accounts/entities/account.entity';
 import { BookmarkDto } from '../../modules/bookmarks/dto/bookmark.dto';
 import { Bookmark } from '../../modules/bookmarks/entities/bookmark.entity';
 import { AllDecksDto } from '../../modules/decks/dto/all-decks-dto';
@@ -18,6 +20,10 @@ describe('DtoTransformer', () => {
     }];
     deck.id = 1;
     deck.authorId = 1;
+
+  const account = new Account();
+  account.id = 1;
+  account.username = 'a';
 
   describe('toBookmarkDto', () => {
     const bookmark = new Bookmark();
@@ -62,4 +68,14 @@ describe('DtoTransformer', () => {
       });
     });
   });
+
+  describe('toUserDto', () => {
+    it('works', () => {
+      const dto = DtoTransformer.toUserDto(account);
+      expect(dto).toEqual<UserDto>({
+        id: account.id,
+        username: account.username,
+      });
+    });
+  })
 });
