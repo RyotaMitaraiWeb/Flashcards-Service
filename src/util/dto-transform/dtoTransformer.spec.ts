@@ -40,7 +40,7 @@ describe('DtoTransformer', () => {
   });
 
   describe('toGetDeckDto', () => {
-    it('works', () => {
+    it('works with one argument', () => {
       const dto = DtoTransformer.toGetDeckDto(deck);
       expect(dto).toEqual<GetDeckDto>({
         id: deck.id,
@@ -53,6 +53,24 @@ describe('DtoTransformer', () => {
             back: deck.flashcards[0].back
           }
         ],
+        bookmarked: false,
+      });
+    });
+
+    it('works with two arguments', () => {
+      const dto = DtoTransformer.toGetDeckDto(deck, true);
+      expect(dto).toEqual<GetDeckDto>({
+        id: deck.id,
+        title: deck.title,
+        description: deck.description,
+        authorId: deck.authorId,
+        flashcards: [
+          {
+            front: deck.flashcards[0].front,
+            back: deck.flashcards[0].back
+          }
+        ],
+        bookmarked: true,
       });
     });
   });

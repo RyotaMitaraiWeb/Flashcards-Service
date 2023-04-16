@@ -20,10 +20,10 @@ export class GetDeckDto {
   title: string;
   description: string;
   authorId: number;
-  flashcards: 
+  flashcards:
     {
       front: string;
       back: string;
-    }[]
-  ;
+    }[];
+  bookmarked: boolean = false;
 }

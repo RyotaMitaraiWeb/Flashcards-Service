@@ -25,9 +25,10 @@ export abstract class DtoTransformer {
 
   /**
    * @param deck
+   * @param bookmarked optionally mark the deck as bookmarked (default is ``false``)
    * @returns a ``GetDeckDto`` representation of ``deck``
    */
-  static toGetDeckDto(deck: Deck): GetDeckDto {
+  static toGetDeckDto(deck: Deck, bookmarked = false): GetDeckDto {
     const dto = new GetDeckDto();
     dto.title = deck.title;
     dto.id = deck.id;
@@ -39,6 +40,7 @@ export abstract class DtoTransformer {
     });
     dto.description = deck.description;
     dto.authorId = deck.authorId;
+    dto.bookmarked = bookmarked;
 
     return dto;
   }
