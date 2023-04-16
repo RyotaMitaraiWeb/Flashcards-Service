@@ -170,7 +170,8 @@ To get a specific deck, send a GET request to ``/decks/{id}`` (where ``{id}`` is
     }
   ],
   "description": "your_description",
-  "authorId": 0 // this will be the author's account ID
+  "authorId": 0, // this will be the author's account ID
+  "bookmark": false // true if the user has bookmarked the deck
 }
 ```
 
@@ -231,6 +232,22 @@ The server won't remove a bookmark if the user is not logged in, is the creator 
 
 **Note:** this merely marks the bookmark as deleted, but it otherwise remains in the database. However, the bookmark API calls won't retrieve any bookmarks that are marked as deleted.
 
+#### Getting bookmarks
+If you want to get all of the user's bookmarked decks, send a GET request to ``/bookmarks`` with a valid JWT attached to the ``Authorization`` header in the format ``Bearer {jwt}``. If the request is authorized, the server will respond with the following JSON structure:
+
+```json
+[
+  {
+    "title": "sometitle",
+    "authorId": 0,
+    "description": "somedescription",
+    "id": 0
+  }
+]
+```
+
+If you want to check if the user has bookmarked a specific deck, refer to the decks controller.
+
 ## Custom validators
 ### ``UniqueUsername``
 This validator checks if the username is already taken by another user.
@@ -238,7 +255,7 @@ This validator checks if the username is already taken by another user.
 ## ``util``
 Contains various utility functions to make some tasks easier
 ### ``HttpFormattedException``
-This is a class that extends the standard ``HttpException`` class from NestJS. You throw it when you want the response body to look like this:
+This is a class that extends the standard ``HttpException`` class from NestJS. You use it when you want the response body to look like this:
 ```json
 {
   "statusCode": "some number",
@@ -246,6 +263,11 @@ This is a class that extends the standard ``HttpException`` class from NestJS. Y
   "error": "Your error"
 }
 ```
+
+The class is an abstract one, so cannot be instantiated. Instead, a few other classes extend it; the purpose of this is so that they can automatically provide the status code (based on the class itself). The current existing classes for this purpose are ``HttpForbiddenException``, ``HttpNotFoundException``, and ``HttpUnauthorizedException``.
+
+### ``DtoTransformer``
+An abstract class that can be used to map entity objects to the corresponding DTO object. All methods are static, so they can be used without instantiating the class.
 
 ### ``extractTokenFromHeader``
 This function takes a string, ``null``, or ``undefined`` as an argument and attempts to retrieve the JWT token.
