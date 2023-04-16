@@ -14,7 +14,7 @@ import { HttpUnauthorizedException } from '../../util/exceptions/HttpUnauthorize
 @Injectable()
 export class IsLoggedInGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) { }
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req: IRequest = context.switchToHttp().getRequest();
     const bearerToken = req.headers?.authorization;
     const token = extractTokenFromHeader(bearerToken);
@@ -24,7 +24,7 @@ export class IsLoggedInGuard implements CanActivate {
         throw new Error();
       }
 
-      this.jwtService.verifyAsync(token, {
+      await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET,
       });
 
