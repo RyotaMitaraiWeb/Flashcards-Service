@@ -6,10 +6,10 @@ import { Deck } from './entities/deck.entity';
 import { FlashcardsService } from '../flashcards/flashcards.service';
 import { Flashcard } from '../flashcards/entities/flashcard.entity';
 import { CreateDeckDto } from './dto/create-deck.dto';
-import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { GetDeckDto } from './dto/get-deck.dto';
 
 describe('DecksService', () => {
   let service: DecksService;
@@ -84,12 +84,13 @@ describe('DecksService', () => {
       });
 
       const deck = await service.findDeckById(1);
-      expect(deck).toEqual({
+      expect(deck).toEqual<GetDeckDto>({
         id: 1,
         description: '',
         flashcards: [{ front: 'a', back: 'a' }],
         title: 'a',
         authorId: 1,
+        bookmarked: false,
       });
     });
 

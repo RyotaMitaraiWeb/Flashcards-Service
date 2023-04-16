@@ -83,6 +83,19 @@ export class BookmarksService {
     return decks;
   }
 
+  async checkIfUserHasBookmarkedDeck(userId: number, deckId: number): Promise<boolean> {
+    const bookmark = await this.bookmarkRepository.findOneBy({
+      isDeleted: false,
+      deckId,
+      userId,
+      deck: {
+        isDeleted: false,
+      }
+    });
+
+    return bookmark !== null;
+  }
+
   /**
    * Finds the bookmark of the given user for the given deck, if such exists.
    * This loads the associated deck.

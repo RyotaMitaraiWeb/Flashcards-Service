@@ -6,25 +6,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Deck } from './entities/deck.entity';
 import { AttachUserFromTokenToRequestMiddleware } from '../../middlewares/attachUserFromTokenToRequest/attachUserFromTokenToRequest';
 import { JwtService } from '@nestjs/jwt';
+import { BookmarksService } from '../bookmarks/bookmarks.service';
+import { Bookmark } from '../bookmarks/entities/bookmark.entity';
 
 @Module({
   controllers: [DecksController],
-  providers: [DecksService, FlashcardsService, JwtService],
-  imports: [TypeOrmModule.forFeature([Deck])]
+  providers: [DecksService, FlashcardsService, JwtService, BookmarksService],
+  imports: [TypeOrmModule.forFeature([Deck, Bookmark])]
 })
 export class DecksModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AttachUserFromTokenToRequestMiddleware)
-      .forRoutes(
-        {
-          path: 'decks',
-          method: RequestMethod.POST,
-        },
-        {
-          path: 'decks/own',
-          method: RequestMethod.GET,
-        },
-      )
+      .forRoutes(DecksController)
   }
 }

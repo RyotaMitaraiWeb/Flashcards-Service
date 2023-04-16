@@ -13,11 +13,27 @@ import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { BookmarksService } from '../bookmarks/bookmarks.service';
+import { Bookmark } from '../bookmarks/entities/bookmark.entity';
 
 describe('DecksController', () => {
   let controller: DecksController;
   let deckRepository: Repository<Deck>;
   let deckService: DecksService;
+  let bookmarkService: BookmarksService;
+
+  const req: IRequest = {
+    headers: {
+      authorization: 'Bearer a',
+    },
+    user: {
+      id: 1,
+      username: 'a',
+    },
+    params: {
+      id: 1,
+    }
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -25,9 +41,14 @@ describe('DecksController', () => {
       providers: [
         DecksService,
         JwtService,
+        BookmarksService,
         FlashcardsService,
         {
           provide: getRepositoryToken(Deck),
+          useClass: Repository,
+        },
+        {
+          provide: getRepositoryToken(Bookmark),
           useClass: Repository,
         }
       ],
@@ -36,6 +57,7 @@ describe('DecksController', () => {
     controller = module.get<DecksController>(DecksController);
     deckRepository = module.get<Repository<Deck>>(getRepositoryToken(Deck));
     deckService = module.get<DecksService>(DecksService);
+    bookmarkService = module.get<BookmarksService>(BookmarksService);
   });
 
   it('should be defined', () => {
@@ -74,6 +96,10 @@ describe('DecksController', () => {
   });
 
   describe('findById', () => {
+    beforeEach(() => {
+      jest.spyOn(bookmarkService, 'checkIfUserHasBookmarkedDeck').mockImplementation(async () => false);
+    });
+
     it('returns a GetDeckDto if service finds a deck successfully', async () => {
       const expectedDeck = new GetDeckDto();
       expectedDeck.id = 1;
@@ -81,6 +107,7 @@ describe('DecksController', () => {
       expectedDeck.flashcards = [{ front: 'a', back: 'a' }];
       expectedDeck.title = 'a';
       expectedDeck.description = '';
+      expectedDeck.bookmarked = false;
 
       jest.spyOn(deckService, 'findDeckById').mockImplementation(async () => {
         const dto = new GetDeckDto();
@@ -98,7 +125,7 @@ describe('DecksController', () => {
         return dto;
       });
 
-      const deck = await controller.findById(1);
+      const deck = await controller.findById(1, req);
       expect(deck).toEqual(expectedDeck);
     });
 
@@ -107,7 +134,7 @@ describe('DecksController', () => {
         throw new HttpNotFoundException('a');
       });
 
-      expect(() => controller.findById(1)).rejects.toThrow(HttpNotFoundException);
+      expect(() => controller.findById(1, req)).rejects.toThrow(HttpNotFoundException);
     });
   });
 

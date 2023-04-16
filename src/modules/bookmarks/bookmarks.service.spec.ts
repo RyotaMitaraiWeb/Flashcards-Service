@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BookmarksService } from './bookmarks.service';
 import { JwtService } from '@nestjs/jwt';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { Deck } from '../decks/entities/deck.entity';
 import { Bookmark } from './entities/bookmark.entity';
 import { Repository } from 'typeorm';
-import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
-import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 import { AllDecksDto } from '../decks/dto/all-decks-dto';
@@ -121,4 +119,20 @@ describe('BookmarksService', () => {
       expect(result).toEqual<AllDecksDto[]>([]);
     });
   });
+
+  describe('checkIfUserHasBookmarkedDeck', () => {
+    it('Returns true when the repository finds a bookmark', async () => {
+      jest.spyOn(bookmarkRepository, 'findOneBy').mockImplementation(async () => new Bookmark());
+
+      const exists = await service.checkIfUserHasBookmarkedDeck(1, 1);
+      expect(exists).toBe(true);
+    });
+
+    it('Returns false when the repository does not find a bookmark', async () => {
+      jest.spyOn(bookmarkRepository, 'findOneBy').mockImplementation(async () => null);
+
+      const exists = await service.checkIfUserHasBookmarkedDeck(1, 1);
+      expect(exists).toBe(false);
+    });
+  })
 });

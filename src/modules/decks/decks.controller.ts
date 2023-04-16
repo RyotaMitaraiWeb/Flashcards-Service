@@ -7,12 +7,16 @@ import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
 import { GetDeckDto } from './dto/get-deck.dto';
 import { IsCreatorGuard } from '../../guards/isCreator/isCreator';
 import { EditDeckDto } from './dto/edit-deck.dto';
+import { BookmarksService } from '../bookmarks/bookmarks.service';
 
 @Controller('decks')
 @ApiBearerAuth('jwt')
 @ApiTags('flashcards')
 export class DecksController {
-  constructor(private readonly decksService: DecksService) { }
+  constructor(
+    private readonly decksService: DecksService,
+    private readonly bookmarksService: BookmarksService,
+  ) { }
 
   @Post()
   @UseGuards(IsLoggedInGuard)
@@ -50,8 +54,12 @@ export class DecksController {
     name: 'id',
     description: 'The id of the deck',
   })
-  async findById(@Param('id', ParseIntPipe) id: number): Promise<GetDeckDto> {
+  async findById(@Param('id', ParseIntPipe) id: number, @Req() req: IRequest): Promise<GetDeckDto> {
     const deck = await this.decksService.findDeckById(id);
+    const userId = req.user?.id || 0;
+
+    const bookmarked = await this.bookmarksService.checkIfUserHasBookmarkedDeck(userId, deck.id);
+    deck.bookmarked = bookmarked;
     return deck;
   }
 

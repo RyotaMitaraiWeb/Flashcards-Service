@@ -514,7 +514,7 @@ describe('DecksController (e2e)', () => {
       id = deckRes.id;
     });
 
-    it('Retrieves a deck successfully', async () => {
+    it('Retrieves a deck successfully (logged out => no bookmark)', async () => {
       const result = await request(server)
         .get(getDeckEndpoint(id))
         .expect(HttpStatus.OK);
@@ -526,6 +526,71 @@ describe('DecksController (e2e)', () => {
         description: deckSubmission.description,
         authorId: user.id,
         flashcards: deckSubmission.flashcards,
+        bookmarked: false,
+      });
+    });
+
+    it('Retrieves a bookmarked deck successfully', async () => {
+      const registerBody2: IAuthBody = {
+        username: 'b'.repeat(validationRules.account.username.minLength),
+        password: 'b'.repeat(validationRules.account.password.minLength),
+      };
+
+      let token2 = '';
+
+      const register = await request(server)
+        .post('/accounts/register')
+        .send(registerBody2);
+
+      token2 = `Bearer ${register.body.token}`;
+
+      await request(server)
+        .post('/bookmarks/' + id)
+        .set('Authorization', token2);
+
+      const result = await request(server)
+        .get(getDeckEndpoint(id))
+        .set('Authorization', token2)
+        .expect(HttpStatus.OK);
+
+      const deck: GetDeckDto = result.body;
+      expect(deck).toEqual<GetDeckDto>({
+        id,
+        title: deckSubmission.title,
+        description: deckSubmission.description,
+        authorId: user.id,
+        flashcards: deckSubmission.flashcards,
+        bookmarked: true,
+      });
+    });
+
+    it('Retrieves a non-bookmarked deck successfully (logged in => no bookmark)', async () => {
+      const registerBody2: IAuthBody = {
+        username: 'b'.repeat(validationRules.account.username.minLength),
+        password: 'b'.repeat(validationRules.account.password.minLength),
+      };
+
+      let token2 = '';
+
+      const register = await request(server)
+        .post('/accounts/register')
+        .send(registerBody2);
+
+      token2 = `Bearer ${register.body.token}`;
+
+      const result = await request(server)
+        .get(getDeckEndpoint(id))
+        .set('Authorization', token2)
+        .expect(HttpStatus.OK);
+
+      const deck: GetDeckDto = result.body;
+      expect(deck).toEqual<GetDeckDto>({
+        id,
+        title: deckSubmission.title,
+        description: deckSubmission.description,
+        authorId: user.id,
+        flashcards: deckSubmission.flashcards,
+        bookmarked: false,
       });
     });
 
