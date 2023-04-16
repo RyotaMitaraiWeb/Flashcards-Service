@@ -1,20 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
 import { IAuthBody, IDeckSubmission, IDeckSubmissionFailure, IDeckSubmissionSuccess } from './util/interfaces';
-import { ICreatedSession, IHttpError, IUser } from '../src/interfaces';
+import { IHttpError, IUser } from '../src/interfaces';
 import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
 import { validationMessages } from '../src/constants/validationMessages';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
 import { validationRules } from '../src/constants/validationRules';
-import { useContainer } from 'class-validator';
 import { GetDeckDto } from '../src/modules/decks/dto/get-deck.dto';
 import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
 import { AccountsModule } from '../src/modules/accounts/accounts.module';
 import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../src/modules/decks/decks.module';
 import { classValidatorContainer } from './util/classValidatorContainer';
+import { registerSeed, createDeckSeed, createDeck } from './util/seeds';
 
 describe('DecksController (e2e)', () => {
   let app: INestApplication;
@@ -31,6 +30,8 @@ describe('DecksController (e2e)', () => {
 
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
 
+  const deckSubmission = createDeck('a');
+
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AccountsModule, BookmarksModule, DecksModule, ...TypeOrmSQLITETestingModule()],
@@ -44,18 +45,10 @@ describe('DecksController (e2e)', () => {
     await app.init();
 
     server = app.getHttpServer();
-    let register: IAuthBody = {
-      username: 'ryota1',
-      password: '123456'
-    };
-
-    const result = await request(server)
-      .post('/accounts/register')
-      .send(register);
-
-    const res: ICreatedSession = result.body;
-    token = `Bearer ${res.token}`;
-    user = res.user;
+    const register = await registerSeed(app, 'b');
+    
+    token = `Bearer ${register.token}`;
+    user = register.user;
 
   });
 
@@ -471,24 +464,6 @@ describe('DecksController (e2e)', () => {
   });
 
   describe('/decks/{id} (GET)', () => {
-    const registerBody: IAuthBody = {
-      username: 'a'.repeat(validationRules.account.username.minLength),
-      password: 'a'.repeat(validationRules.account.password.minLength),
-    };
-
-    const deckSubmission: IDeckSubmission = {
-      title: 'a'.repeat(validationRules.deck.title.minLength),
-      description: '',
-      flashcards: [],
-    }
-
-    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-      deckSubmission.flashcards[i] = {
-        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-      };
-    }
-
     let token: string = '';
     let id: number = 0;
     let user: IUser = {
@@ -497,21 +472,13 @@ describe('DecksController (e2e)', () => {
     }
 
     beforeEach(async () => {
-      const result = await request(server)
-        .post('/accounts/register')
-        .send(registerBody);
+      const registerResult = await registerSeed(app, 'a');
+      
+      token = registerResult.token;
+      user = registerResult.user;
 
-      const res: ICreatedSession = result.body;
-      token = res.token;
-      user = res.user;
-
-      const deckResult = await request(server)
-        .post(deckEndpoint)
-        .set('Authorization', `Bearer ${token}`)
-        .send(deckSubmission);
-
-      const deckRes: IDeckSubmissionSuccess = deckResult.body;
-      id = deckRes.id;
+      const deckResult = await createDeckSeed(app, token, deckSubmission, 'h');
+      id = deckResult.id;
     });
 
     it('Retrieves a deck successfully (logged out => no bookmark)', async () => {
@@ -531,18 +498,11 @@ describe('DecksController (e2e)', () => {
     });
 
     it('Retrieves a bookmarked deck successfully', async () => {
-      const registerBody2: IAuthBody = {
-        username: 'b'.repeat(validationRules.account.username.minLength),
-        password: 'b'.repeat(validationRules.account.password.minLength),
-      };
+      const register2 = await registerSeed(app, 'e');
 
       let token2 = '';
 
-      const register = await request(server)
-        .post('/accounts/register')
-        .send(registerBody2);
-
-      token2 = `Bearer ${register.body.token}`;
+      token2 = `Bearer ${register2.token}`;
 
       await request(server)
         .post('/bookmarks/' + id)
@@ -576,13 +536,13 @@ describe('DecksController (e2e)', () => {
         .post('/accounts/register')
         .send(registerBody2);
 
-      token2 = `Bearer ${register.body.token}`;
-
+      token2 = `Bearer ${register.body.token}`;      
+      
       const result = await request(server)
         .get(getDeckEndpoint(id))
         .set('Authorization', token2)
         .expect(HttpStatus.OK);
-
+      
       const deck: GetDeckDto = result.body;
       expect(deck).toEqual<GetDeckDto>({
         id,
@@ -610,49 +570,21 @@ describe('DecksController (e2e)', () => {
   });
 
   describe('/decks/{id} (DELETE)', () => {
-    let register2: IAuthBody = {
-      username: 'ryota2',
-      password: '123456'
-    }
-
     let token2: string = '';
-
-    const deckSubmission: IDeckSubmission = {
-      title: 'a'.repeat(validationRules.deck.title.minLength),
-      description: '',
-      flashcards: [],
-    }
-
-    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-      deckSubmission.flashcards[i] = {
-        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-      };
-    }
-
     let id: number = 0;
 
     beforeEach(async () => {
-      const result = await request(server)
-        .post('/accounts/register')
-        .send(register2);
+      const registerResult = await registerSeed(app, 'l');
+      token2 = `Bearer ${registerResult.token}`;
 
-      const res: ICreatedSession = result.body;
-      token2 = `Bearer ${res.token}`;
-
-      const deckResult = await request(server)
-        .post(deckEndpoint)
-        .set('Authorization', token)
-        .send(deckSubmission);
-
-      const deckRes: IDeckSubmissionSuccess = deckResult.body;
-      id = deckRes.id;
+      const deckResult = await createDeckSeed(app, token2, deckSubmission, 'p');
+      id = deckResult.id;
     });
 
     it('Successfully deletes a deck', async () => {
       await request(server)
         .del(getDeckEndpoint(id))
-        .set('Authorization', token)
+        .set('Authorization', token2)
         .expect(HttpStatus.NO_CONTENT);
 
       await request(server)
@@ -672,7 +604,7 @@ describe('DecksController (e2e)', () => {
     it('Returns 403 if the user is not the creator of the deck', async () => {
       const result = await request(server)
         .del(getDeckEndpoint(id))
-        .set('Authorization', token2)
+        .set('Authorization', token)
         .expect(HttpStatus.FORBIDDEN);
 
       const res: IHttpError = result.body;
@@ -691,59 +623,18 @@ describe('DecksController (e2e)', () => {
   });
 
   describe('/decks/{id} (PUT)', () => {
-    let register2: IAuthBody = {
-      username: 'ryota2',
-      password: '123456'
-    }
-
     let token2: string = '';
 
-    const deckSubmission: IDeckSubmission = {
-      title: 'a'.repeat(validationRules.deck.title.minLength),
-      description: '',
-      flashcards: [],
-    }
-
-    const editDeckSubmission: IDeckSubmission = {
-      title: 'b'.repeat(validationRules.deck.title.minLength),
-      description: 'a',
-      flashcards: [
-        {
-          front: 'b'.repeat(validationRules.flashcard.sideMinLength),
-          back: 'b'.repeat(validationRules.flashcard.sideMinLength)
-        }
-      ],
-    }
-
-    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-      deckSubmission.flashcards[i] = {
-        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-      };
-
-      editDeckSubmission.flashcards[i + 1] = {
-        front: 'b'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'b'.repeat(validationRules.flashcard.sideMinLength)
-      };
-    }
+    const editDeckSubmission = createDeck('b');
 
     let id: number = 0;
 
     beforeEach(async () => {
-      const result = await request(server)
-        .post('/accounts/register')
-        .send(register2);
+      const registerResult = await registerSeed(app, 't');
+      token2 = `Bearer ${registerResult.token}`;
 
-      const res: ICreatedSession = result.body;
-      token2 = `Bearer ${res.token}`;
-
-      const deckResult = await request(server)
-        .post(deckEndpoint)
-        .set('Authorization', token)
-        .send(deckSubmission);
-
-      const deckRes: IDeckSubmissionSuccess = deckResult.body;
-      id = deckRes.id;
+      const deckResult = await createDeckSeed(app, token, deckSubmission, 'o');
+      id = deckResult.id;
     });
 
     it('Updates the deck successfully', async () => {
@@ -1121,26 +1012,7 @@ describe('DecksController (e2e)', () => {
     });
 
     it('Returns an array of decks', async () => {
-      const deckSubmission: IDeckSubmission = {
-        title: 'a'.repeat(validationRules.deck.title.minLength),
-        description: '',
-        flashcards: []
-      }
-
-      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-        deckSubmission.flashcards[i] = {
-          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-        };
-      }
-
-      const deckRes = await request(server)
-        .post(deckEndpoint)
-        .set('Authorization', token)
-        .send(deckSubmission);
-
-      const deck: IDeckSubmissionSuccess = deckRes.body;
-
+      const deck = await createDeckSeed(app, token, deckSubmission, 'f');
       const result = await request(server)
         .get(getDeckEndpoint('all'))
         .expect(HttpStatus.OK);
@@ -1158,66 +1030,23 @@ describe('DecksController (e2e)', () => {
   });
 
   describe('/decks/own (GET)', () => {
-    const submission: IDeckSubmission = {
-      title: 'c'.repeat(validationRules.deck.title.minLength),
-      description: '',
-      flashcards: []
-    }
-
-    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-      submission.flashcards[i] = {
-        front: 'c'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'c'.repeat(validationRules.flashcard.sideMinLength)
-      };
-    }
-
     let id1 = 0;
 
     beforeEach(async () => {
-      const result1 = await request(server)
-        .post(deckEndpoint)
-        .set('Authorization', token)
-        .send(submission);
-
-      const res1: IDeckSubmissionSuccess = result1.body;
-      id1 = res1.id;
-
-      let register2: IAuthBody = {
-        username: 'ryota2',
-        password: '123456'
-      }
+      const deckResult = await createDeckSeed(app, token, deckSubmission, 'c')
+      id1 = deckResult.id;
 
       let token2: string = '';
-
-      const deckSubmission: IDeckSubmission = {
-        title: 'a'.repeat(validationRules.deck.title.minLength),
-        description: '',
-        flashcards: [],
-      }
-
-      for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-        deckSubmission.flashcards[i] = {
-          front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-          back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-        };
-      }
+      const submission = createDeck('a');
 
       let id2: number = 0;
 
-      const result = await request(server)
-        .post('/accounts/register')
-        .send(register2);
+      const registerResult = await registerSeed(app, 'x');
 
-      const res: ICreatedSession = result.body;
-      token2 = `Bearer ${res.token}`;
+      token2 = `Bearer ${registerResult.token}`;
 
-      const result2 = await request(server)
-        .post(deckEndpoint)
-        .set('Authorization', token2)
-        .send(deckSubmission);
-
-      const res2: IDeckSubmissionSuccess = result2.body;
-      id2 = res2.id;
+      const deckResult2 = await createDeckSeed(app, token2, submission, 'z');
+      id2 = deckResult2.id;
     });
 
     it('Returns only the decks that the user has created', async () => {

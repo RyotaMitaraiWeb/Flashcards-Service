@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
 import { IAuthBody, IDeckSubmission, IDeckSubmissionSuccess } from './util/interfaces';
 import { ICreatedSession, IHttpError, IUser } from '../src/interfaces';
 import { validationRules } from '../src/constants/validationRules';
@@ -12,6 +11,7 @@ import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../src/modules/decks/decks.module';
 import { classValidatorContainer } from './util/classValidatorContainer';
 import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
+import { createDeck, createDeckSeed, registerSeed } from './util/seeds';
 
 describe('BookmarkController (e2e)', () => {
   let app: INestApplication;
@@ -26,16 +26,6 @@ describe('BookmarkController (e2e)', () => {
   let deckId1 = 0;
   let deckId2 = 0;
 
-  let user1: IUser = {
-    id: 0,
-    username: ''
-  };
-
-  let user2: IUser = {
-    id: 0,
-    username: '',
-  };
-
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
 
   beforeEach(async () => {
@@ -48,69 +38,20 @@ describe('BookmarkController (e2e)', () => {
     await app.init();
     server = app.getHttpServer();
 
-    const register1: IAuthBody = {
-      username: 'ryota1',
-      password: '123456',
-    };
+    const registerResult1 = await registerSeed(app, 'a');
+    token1 = `Bearer ${registerResult1.token}`;
 
-    const register2: IAuthBody = {
-      username: 'ryota2',
-      password: '123456',
-    };
+    const registerResult2 = await registerSeed(app, 'b');
+    token2 = `Bearer ${registerResult2.token}`;
 
-    const result1 = await request(server)
-      .post('/accounts/register')
-      .send(register1);
+    const deckSubmission1 = createDeck('a');
+    const deckSubmission2 = createDeck('b');
 
-    const res1: ICreatedSession = result1.body;
-    token1 = `Bearer ${res1.token}`;
+    const deckResult1 = await createDeckSeed(app, token1, deckSubmission1, 'a');
+    deckId1 = deckResult1.id;
 
-    const result2 = await request(server)
-      .post('/accounts/register')
-      .send(register2);
-
-    const res2: ICreatedSession = result2.body;
-    token2 = `Bearer ${res2.token}`;
-
-    const deckSubmission1: IDeckSubmission = {
-      title: 'a'.repeat(validationRules.deck.title.minLength),
-      description: '',
-      flashcards: []
-    };
-
-    const deckSubmission2: IDeckSubmission = {
-      title: 'a'.repeat(validationRules.deck.title.minLength),
-      description: '',
-      flashcards: []
-    };
-
-    for (let i = 0; i < validationRules.deck.flashcards.minimumFlashcards; i++) {
-      deckSubmission1.flashcards[i] = {
-        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-      };
-
-      deckSubmission2.flashcards[i] = {
-        front: 'a'.repeat(validationRules.flashcard.sideMinLength),
-        back: 'a'.repeat(validationRules.flashcard.sideMinLength)
-      };
-    }
-
-    const deckResult1 = await request(server)
-      .post('/decks')
-      .set('Authorization', token1)
-      .send(deckSubmission1);
-
-    const deckRes1: IDeckSubmissionSuccess = deckResult1.body;
-    deckId1 = deckRes1.id;
-
-    const deckResult2 = await request(server)
-      .post('/decks')
-      .set('Authorization', token2)
-      .send(deckSubmission2);
-
-    const deckRes2: IDeckSubmissionSuccess = deckResult2.body;
-    deckId2 = deckRes2.id;
+    const deckResult2 = await createDeckSeed(app, token2, deckSubmission2, 'b');
+    deckId2 = deckResult2.id;
   });
 
   describe('/bookmarks/{id} (POST)', () => {

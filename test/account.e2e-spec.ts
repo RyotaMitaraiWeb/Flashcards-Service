@@ -16,6 +16,7 @@ import { jwtBlacklist } from '../src/modules/accounts/jwtBlacklist';
 import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../src/modules/decks/decks.module';
 import { classValidatorContainer } from './util/classValidatorContainer';
+import { registerSeed } from './util/seeds';
 
 describe('Account controller (E2E)', () => {
   let app: INestApplication;
@@ -243,16 +244,23 @@ describe('Account controller (E2E)', () => {
   });
 
   describe('/login (POST)', () => {
-    it('logs in successfully', async () => {
-      const credentials: IAuthBody = {
-        username: 'ryota1',
-        password: '123456',
-      };
+    const credentials: IAuthBody = {
+      username: 'ryota1',
+      password: '123456',
+    };
 
+    let token = '';
+
+    beforeEach(async () => {
       const result = await request(server)
         .post(registerEndpoint)
         .send(credentials);
 
+      const body: ICreatedSession = result.body;
+      token = `Bearer ${body.token}`;
+    });
+
+    it('logs in successfully', async () => {
       const res = await request(server)
         .post(loginEndpoint)
         .send(credentials)
@@ -265,18 +273,6 @@ describe('Account controller (E2E)', () => {
     });
 
     it('Returns 403 if a token is detected in the Authorization header', async () => {
-      const credentials: IAuthBody = {
-        username: 'ryota1',
-        password: '123456',
-      };
-
-      const register = await request(server)
-        .post(registerEndpoint)
-        .send(credentials);
-
-      const registerRes: ICreatedSession = register.body;
-      const token = `Bearer ${registerRes.token}`;
-
       const result = await request(server)
         .post(loginEndpoint)
         .send(credentials)
@@ -288,19 +284,10 @@ describe('Account controller (E2E)', () => {
     });
 
     it('Returns 401 for wrong password', async () => {
-      const credentials: IAuthBody = {
-        username: 'ryota1',
-        password: '123456',
-      };
-
       const wrongPasswordBody: IAuthBody = {
         username: 'ryota1',
         password: '1',
       };
-
-      await request(server)
-        .post(registerEndpoint)
-        .send(credentials);
 
       const result = await request(server)
         .post(loginEndpoint)
@@ -331,17 +318,8 @@ describe('Account controller (E2E)', () => {
     let token = '';
 
     beforeEach(async () => {
-      const registerBody: IAuthBody = {
-        username: 'ryota1',
-        password: '123456',
-      };
-
-      const registerResult = await request(server)
-        .post(registerEndpoint)
-        .send(registerBody);
-
-      const registerResponse: ICreatedSession = registerResult.body;
-      token = `Bearer ${registerResponse.token}`;
+      const register = await registerSeed(app, 'a');
+      token = `Bearer ${register.token}`;
     });
 
     it('Returns 204 for successful logout', async () => {
@@ -378,31 +356,21 @@ describe('Account controller (E2E)', () => {
   describe('/session (POST)', () => {
     let token: string = '';
 
-    let registerBody: IAuthBody = {
-      username: 'ryota1',
-      password: '123456',
-    };
-
     let user: IUser = {
       id: 0,
       username: '',
     };
 
     beforeEach(async () => {
-      const result = await request(server)
-        .post(registerEndpoint)
-        .send(registerBody);
+      const result = await registerSeed(app, 'a');
 
-      const res: ICreatedSession = result.body;
-
-      token = `Bearer ${res.token}`;
-      user = res.user;
+      token = `Bearer ${result.token}`;
+      user = result.user;
     });
 
     it('Returns 201 for a valid session', async () => {
       const result = await request(server)
         .post(sessionEndpoint)
-        .send({})
         .set('Authorization', token)
         .expect(HttpStatus.CREATED);
 
