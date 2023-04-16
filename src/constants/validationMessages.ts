@@ -21,12 +21,12 @@ export const validationMessages = {
   },
   deck: {
     title: {
-      isTooLong: `Title must be no more than ${deck.title.maxLength}`,
-      isTooShort: `Title must have at least ${deck.title.minLength} characters`,
+      isTooLong: `Title must be no more than ${deck.title.maxLength} characters long`,
+      isTooShort: `Title must have at least ${deck.title.minLength} characters long`,
       isNotString: 'Title must be a string',
     },
     description: {
-      isTooLong: `Description must be no more than ${deck.description.maxLength}`,
+      isTooLong: `Description must be no more than ${deck.description.maxLength} characters long`,
       isNotString: 'Description must be a string',
     },
     flashcards: {
