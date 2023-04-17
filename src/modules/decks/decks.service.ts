@@ -174,6 +174,7 @@ export class DecksService {
     const decks = await this.deckRepository.find({
       where: {
         title: ILike(`%${title}%`),
+        isDeleted: false,
       },
       order: {
         [sortOptions.sortBy]: sortOptions.order,
