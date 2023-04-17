@@ -13,7 +13,7 @@ import { AccountsModule } from '../src/modules/accounts/accounts.module';
 import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../src/modules/decks/decks.module';
 import { classValidatorContainer } from './util/classValidatorContainer';
-import { registerSeed, createDeckSeed, createDeck } from './util/seeds';
+import { registerSeed, createDeckSeed, createDeck, createDeckMultipleSeeds } from './util/seeds';
 
 describe('DecksController (e2e)', () => {
   let app: INestApplication;
@@ -27,6 +27,8 @@ describe('DecksController (e2e)', () => {
     id: 0,
     username: '',
   };
+
+  // const urlBuilder = ()
 
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
 
@@ -46,7 +48,7 @@ describe('DecksController (e2e)', () => {
 
     server = app.getHttpServer();
     const register = await registerSeed(app, 'b');
-    
+
     token = `Bearer ${register.token}`;
     user = register.user;
 
@@ -473,11 +475,11 @@ describe('DecksController (e2e)', () => {
 
     beforeEach(async () => {
       const registerResult = await registerSeed(app, 'a');
-      
+
       token = registerResult.token;
       user = registerResult.user;
 
-      const deckResult = await createDeckSeed(app, token, deckSubmission, 'h');
+      const deckResult = await createDeckSeed(app, token, deckSubmission);
       id = deckResult.id;
     });
 
@@ -536,13 +538,13 @@ describe('DecksController (e2e)', () => {
         .post('/accounts/register')
         .send(registerBody2);
 
-      token2 = `Bearer ${register.body.token}`;      
-      
+      token2 = `Bearer ${register.body.token}`;
+
       const result = await request(server)
         .get(getDeckEndpoint(id))
         .set('Authorization', token2)
         .expect(HttpStatus.OK);
-      
+
       const deck: GetDeckDto = result.body;
       expect(deck).toEqual<GetDeckDto>({
         id,
@@ -577,7 +579,7 @@ describe('DecksController (e2e)', () => {
       const registerResult = await registerSeed(app, 'l');
       token2 = `Bearer ${registerResult.token}`;
 
-      const deckResult = await createDeckSeed(app, token2, deckSubmission, 'p');
+      const deckResult = await createDeckSeed(app, token2, deckSubmission);
       id = deckResult.id;
     });
 
@@ -633,7 +635,7 @@ describe('DecksController (e2e)', () => {
       const registerResult = await registerSeed(app, 't');
       token2 = `Bearer ${registerResult.token}`;
 
-      const deckResult = await createDeckSeed(app, token, deckSubmission, 'o');
+      const deckResult = await createDeckSeed(app, token, deckSubmission);
       id = deckResult.id;
     });
 
@@ -1012,7 +1014,7 @@ describe('DecksController (e2e)', () => {
     });
 
     it('Returns an array of decks', async () => {
-      const deck = await createDeckSeed(app, token, deckSubmission, 'f');
+      const deck = await createDeckSeed(app, token, deckSubmission);
       const result = await request(server)
         .get(getDeckEndpoint('all'))
         .expect(HttpStatus.OK);
@@ -1033,7 +1035,7 @@ describe('DecksController (e2e)', () => {
     let id1 = 0;
 
     beforeEach(async () => {
-      const deckResult = await createDeckSeed(app, token, deckSubmission, 'c')
+      const deckResult = await createDeckSeed(app, token, deckSubmission)
       id1 = deckResult.id;
 
       let token2: string = '';
@@ -1045,7 +1047,7 @@ describe('DecksController (e2e)', () => {
 
       token2 = `Bearer ${registerResult.token}`;
 
-      const deckResult2 = await createDeckSeed(app, token2, submission, 'z');
+      const deckResult2 = await createDeckSeed(app, token2, submission);
       id2 = deckResult2.id;
     });
 
@@ -1081,6 +1083,56 @@ describe('DecksController (e2e)', () => {
 
       const res: AllDecksDto[] = result.body;
       expect(res).toEqual([]);
+    });
+  });
+
+  describe.only('/decks/search (GET)', () => {
+    let deckSeeds: IDeckSubmissionSuccess[] = [];
+    const deckWithDifferentTitle = createDeck('l');
+
+    beforeEach(async () => {
+      deckSeeds = await createDeckMultipleSeeds(
+        app,
+        token,
+        deckSubmission,
+        validationRules.deck.search.limit + 1
+        
+      );
+
+      await createDeckSeed(app, token, deckWithDifferentTitle);
+    });
+
+    it('Returns the first page of decks that match the input (default page) and sorted by default options', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint('search?title=a'))
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+
+      expect(decks.length).toBe(validationRules.deck.search.limit);
+      const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
+      expect(decks).toEqual(sortedDecks);
+    });
+
+    it('Returns the first page of decks that match the input (page 1), sorted by title descending', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint('search?title=a&order=desc&sortBy=title'))
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+
+      expect(decks.length).toBe(validationRules.deck.search.limit);
+      const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
+      expect(decks).toEqual(sortedDecks);
+    });
+
+    it('Returns decks on a page different than one', async () => {
+      const result = await request(server)
+        .get(getDeckEndpoint('search?page=2&title=a'))
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+      expect(decks.length).toBe(1);
     });
   });
 

@@ -1,13 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, Req, UseGuards, HttpStatus, ParseIntPipe, HttpCode, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Headers, Req, UseGuards, HttpStatus, ParseIntPipe, HttpCode, Put, Query } from '@nestjs/common';
 import { DecksService } from './decks.service';
 import { CreateDeckDto } from './dto/create-deck.dto';
-import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRequest } from '../../interfaces';
 import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
 import { GetDeckDto } from './dto/get-deck.dto';
 import { IsCreatorGuard } from '../../guards/isCreator/isCreator';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { BookmarksService } from '../bookmarks/bookmarks.service';
+import { validationRules } from '../../constants/validationRules';
+import { AllDecksDto } from './dto/all-decks-dto';
+import { sortBuilder } from '../../util/sort-builder/sort-builder';
 
 @Controller('decks')
 @ApiBearerAuth('jwt')
@@ -30,6 +33,38 @@ export class DecksController {
     return { id: deck.id };
   }
 
+  @ApiQuery({
+    name: 'sortBy',
+    description: `The category by which the decks to be sorted. Default is ${validationRules.deck.search.sortBy[0]}`,
+    enumName: 'sort categories',
+    enum: validationRules.deck.search.sortBy,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'order',
+    description: `Ascending or descending. Default is ${validationRules.deck.search.order[0]}.`,
+    enumName: 'order',
+    enum: validationRules.deck.search.order,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'page',
+    description: `Must be a numeric value. If value is non-numeric, 0, or negative, defaults to 1. Decks per page: ${validationRules.deck.search.limit}`,
+    required: false,
+  })
+  @Get('search')
+  async searchDecksByTitle(
+    @Query('sortBy') sortBy: string,
+    @Query('order') order: string,
+    @Query('page') page: string | number,
+    @Query('title') title: string): Promise<AllDecksDto[]> {
+
+    const sort = sortBuilder(sortBy, order, page);
+    const decks = await this.decksService.searchDecksByTitle(title, sort);    
+
+    return decks;
+  }
+
   @Get('all')
   @ApiResponse({ status: HttpStatus.OK, description: 'By default, you should always get an array' })
   async getAllDecks() {
@@ -43,7 +78,7 @@ export class DecksController {
   async getUserDecks(@Req() req: IRequest) {
     const id: number = req?.user?.id || 0;
     const decks = await this.decksService.getUserDecks(id);
-    
+
     return decks;
   }
 

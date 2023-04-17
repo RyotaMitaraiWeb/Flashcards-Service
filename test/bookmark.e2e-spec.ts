@@ -47,10 +47,10 @@ describe('BookmarkController (e2e)', () => {
     const deckSubmission1 = createDeck('a');
     const deckSubmission2 = createDeck('b');
 
-    const deckResult1 = await createDeckSeed(app, token1, deckSubmission1, 'a');
+    const deckResult1 = await createDeckSeed(app, token1, deckSubmission1);
     deckId1 = deckResult1.id;
 
-    const deckResult2 = await createDeckSeed(app, token2, deckSubmission2, 'b');
+    const deckResult2 = await createDeckSeed(app, token2, deckSubmission2);
     deckId2 = deckResult2.id;
   });
 

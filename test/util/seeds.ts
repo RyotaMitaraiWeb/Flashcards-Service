@@ -35,7 +35,7 @@ export function createDeck(letter = 'a') {
   return submission;
 }
 
-export async function createDeckSeed(app: INestApplication, token: string, deck: IDeckSubmission, letter = 'a') {
+export async function createDeckSeed(app: INestApplication, token: string, deck: IDeckSubmission) {
 
   if (!token.startsWith('Bearer ')) {
     token = `Bearer ${token}`;
@@ -48,4 +48,14 @@ export async function createDeckSeed(app: INestApplication, token: string, deck:
 
   const res: IDeckSubmissionSuccess = result.body;
   return res;
+}
+
+export async function createDeckMultipleSeeds(app: INestApplication, token: string, deck: IDeckSubmission, n = 2) {
+  const decks: IDeckSubmissionSuccess[] = [];
+  for (let i = 0; i < n; i++) {
+    const deckRes = await createDeckSeed(app, token, deck);
+    decks.push(deckRes);
+  }
+
+  return decks;
 }

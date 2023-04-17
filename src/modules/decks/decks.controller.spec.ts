@@ -6,10 +6,9 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Deck } from './entities/deck.entity';
 import { FlashcardsService } from '../flashcards/flashcards.service';
-import { IRequest } from '../../interfaces';
+import { IRequest, ISorter } from '../../interfaces';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { GetDeckDto } from './dto/get-deck.dto';
-import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
@@ -21,6 +20,12 @@ describe('DecksController', () => {
   let deckRepository: Repository<Deck>;
   let deckService: DecksService;
   let bookmarkService: BookmarksService;
+
+  const sort: ISorter = {
+    page: 1,
+    sortBy: 'title',
+    order: 'asc'
+  }
 
   const req: IRequest = {
     headers: {
@@ -237,6 +242,27 @@ describe('DecksController', () => {
       
       const result = await controller.getUserDecks(req);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('searchDecksByTitle', () => {
+    it('Returns whatever searchDecksByTitle service method returns', async () => {
+      const dto = new AllDecksDto();
+      dto.title = 'a';
+      dto.description = '';
+      dto.id = 1;
+      dto.authorId = 1;
+      jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => [dto]);
+
+      const result = await controller.searchDecksByTitle(sort.sortBy, sort.order, sort.page, 'a');
+      expect(result).toEqual<AllDecksDto[]>([dto]);
+    });
+
+    it('Works correctly when searchDecksByTitle service method returns an empty array', async () => {
+      jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => []);
+
+      const result = await controller.searchDecksByTitle(sort.sortBy, sort.order, sort.page, 'a');
+      expect(result).toEqual<AllDecksDto[]>([]);
     });
   });
 });

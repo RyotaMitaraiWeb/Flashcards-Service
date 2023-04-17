@@ -10,6 +10,7 @@ import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { GetDeckDto } from './dto/get-deck.dto';
+import { ISorter } from '../../interfaces';
 
 describe('DecksService', () => {
   let service: DecksService;
@@ -215,6 +216,41 @@ describe('DecksService', () => {
       
       const result = await service.getUserDecks(1);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('searchDecksByTitle', () => {
+    const sort: ISorter = {
+      page: 1,
+      sortBy: 'title',
+      order: 'asc'
+    };
+
+    it('Returns an AllDecksDto array of whatever the repository returns', async () => {
+      const dto = new AllDecksDto();
+      dto.authorId = 1;
+      dto.description = '';
+      dto.id = 1;
+      dto.title = 'a';
+
+      jest.spyOn(deckRepository, 'find').mockImplementation(async () => {
+        const deck = new Deck();
+        deck.title = dto.title;
+        deck.authorId = dto.authorId;
+        deck.id = dto.id;
+        deck.description = dto.description;
+        return [deck];
+      });
+
+      const decks = await service.searchDecksByTitle('a', sort);
+      expect(decks).toEqual<AllDecksDto[]>([dto]);
+    });
+
+    it('Works correctly when the repository returns an empty array', async () => {
+      jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
+
+      const decks = await service.searchDecksByTitle('a', sort);
+      expect(decks).toEqual<AllDecksDto[]>([]);
     });
   });
 });

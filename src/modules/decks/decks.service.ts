@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Deck } from './entities/deck.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { FlashcardsService } from '../flashcards/flashcards.service';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
@@ -13,6 +13,8 @@ import { EditDeckDto } from './dto/edit-deck.dto';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
+import { ISorter } from '../../interfaces';
+import { validationRules } from '../../constants/validationRules';
 
 @Injectable()
 export class DecksService {
@@ -131,7 +133,7 @@ export class DecksService {
         title: true,
         description: true,
         authorId: true,
-      }
+      },
     });
 
     const allDecks = decks.map(d => DtoTransformer.toAllDecksDto(d));
@@ -154,6 +156,23 @@ export class DecksService {
 
     const decksDto = decks.map(d => DtoTransformer.toAllDecksDto(d));
     return decksDto;
+  }
+
+  async searchDecksByTitle(title: string, sortOptions: ISorter): Promise<AllDecksDto[]> {
+    const decks = await this.deckRepository.find({
+      where: {
+        title: ILike(`%${title}%`),
+      },
+      order: {
+        [sortOptions.sortBy]: sortOptions.order,
+        id: 'asc',
+      },
+      take: validationRules.deck.search.limit,
+      skip: (sortOptions.page - 1) * validationRules.deck.search.limit,
+    });
+
+    const dtos = decks.map(d => DtoTransformer.toAllDecksDto(d));
+    return dtos;
   }
   
   /**
