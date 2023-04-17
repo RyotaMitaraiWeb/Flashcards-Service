@@ -16,6 +16,11 @@ describe('DecksService', () => {
   let service: DecksService;
   let deckRepository: Repository<Deck>;
   let flashcardService: FlashcardsService;
+  const sort: ISorter = {
+    page: 1,
+    sortBy: 'title',
+    order: 'asc'
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -177,14 +182,14 @@ describe('DecksService', () => {
         return [deck];
       });
 
-      const result = await service.getAllDecks();
+      const result = await service.getAllDecks(sort);
       expect(result).toEqual<AllDecksDto[]>([dto]);
     });
 
     it('Works correctly when the repository returns an empty array', async () => {
       jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
       
-      const result = await service.getAllDecks();
+      const result = await service.getAllDecks(sort);
       expect(result).toEqual([]);
     });
   });

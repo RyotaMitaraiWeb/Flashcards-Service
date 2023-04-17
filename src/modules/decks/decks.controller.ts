@@ -66,9 +66,34 @@ export class DecksController {
   }
 
   @Get('all')
+  @ApiQuery({
+    name: 'sortBy',
+    description: `The category by which the decks to be sorted. Default is ${validationRules.deck.search.sortBy[0]}`,
+    enumName: 'sort categories',
+    enum: validationRules.deck.search.sortBy,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'order',
+    description: `Ascending or descending. Default is ${validationRules.deck.search.order[0]}.`,
+    enumName: 'order',
+    enum: validationRules.deck.search.order,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'page',
+    description: `Must be a numeric value. If value is non-numeric, 0, or negative, defaults to 1. Decks per page: ${validationRules.deck.search.limit}`,
+    required: false,
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'By default, you should always get an array' })
-  async getAllDecks() {
-    return await this.decksService.getAllDecks();
+  async getAllDecks(
+    @Query('sortBy') sortBy: string,
+    @Query('order') order: string,
+    @Query('page') page: string | number,
+  ) {
+
+    const sort = sortBuilder(sortBy, order, page);
+    return await this.decksService.getAllDecks(sort);
   }
 
   @Get('own')

@@ -123,7 +123,7 @@ export class DecksService {
    * **Note:** this loads only the decks' ``id``, ``title``, ``description``, and ``authorId``.
    * @returns a Promise that resolves to an ``AllDecksDto`` array
    */
-  async getAllDecks(): Promise<AllDecksDto[]> {
+  async getAllDecks(sortOptions: ISorter): Promise<AllDecksDto[]> {
     const decks = await this.deckRepository.find({
       where: {
         isDeleted: false,
@@ -134,6 +134,12 @@ export class DecksService {
         description: true,
         authorId: true,
       },
+      order: {
+        [sortOptions.sortBy]: sortOptions.order,
+        id: 'asc',
+      },
+      take: validationRules.deck.search.limit,
+      skip: (sortOptions.page - 1) * validationRules.deck.search.limit,
     });
 
     const allDecks = decks.map(d => DtoTransformer.toAllDecksDto(d));

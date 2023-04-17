@@ -1029,6 +1029,42 @@ describe('DecksController (e2e)', () => {
         }
       ]);
     });
+
+    it('Returns by page successfully', async () => {
+      await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit + 1);
+      const result = await request(server)
+        .get(getDeckEndpoint('all?page=2'))
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res.length).toBe(1);
+    });
+
+    it('Returns decks sorted by title ascending', async () => {
+      const differentDeck = createDeck('x');
+      await createDeckSeed(app, token, differentDeck);
+
+      const result = await request(server)
+        .get(getDeckEndpoint('all?sortBy=title&order=asc'))
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+      const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
+      expect(decks).toEqual(sortedDecks);
+    });
+
+    it('Returns decks sorted by title descending', async () => {
+      const differentDeck = createDeck('x');
+      await createDeckSeed(app, token, differentDeck);
+
+      const result = await request(server)
+        .get(getDeckEndpoint('all?sortBy=title&order=desc'))
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+      const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
+      expect(decks).toEqual(sortedDecks);
+    });
   });
 
   describe('/decks/own (GET)', () => {
@@ -1086,7 +1122,7 @@ describe('DecksController (e2e)', () => {
     });
   });
 
-  describe.only('/decks/search (GET)', () => {
+  describe('/decks/search (GET)', () => {
     let deckSeeds: IDeckSubmissionSuccess[] = [];
     const deckWithDifferentTitle = createDeck('l');
 
