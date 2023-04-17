@@ -212,14 +212,14 @@ describe('DecksService', () => {
         return [deck];
       });
 
-      const result = await service.getUserDecks(dto.authorId);
+      const result = await service.getUserDecks(dto.authorId, sort);
       expect(result).toEqual<AllDecksDto[]>([dto]);
     });
 
     it('Works correctly when the repository returns an empty array', async () => {
       jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
       
-      const result = await service.getUserDecks(1);
+      const result = await service.getUserDecks(1, sort);
       expect(result).toEqual([]);
     });
   });

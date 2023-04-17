@@ -146,7 +146,7 @@ export class DecksService {
     return allDecks;
   }
 
-  async getUserDecks(authorId: number): Promise<AllDecksDto[]> {
+  async getUserDecks(authorId: number, sortOptions: ISorter): Promise<AllDecksDto[]> {
     const decks = await this.deckRepository.find({
       where: {
         isDeleted: false,
@@ -157,7 +157,13 @@ export class DecksService {
         title: true,
         description: true,
         authorId: true,
-      }
+      },
+      order: {
+        [sortOptions.sortBy]: sortOptions.order,
+        id: 'asc',
+      },
+      take: validationRules.deck.search.limit,
+      skip: (sortOptions.page - 1) * validationRules.deck.search.limit,
     });
 
     const decksDto = decks.map(d => DtoTransformer.toAllDecksDto(d));

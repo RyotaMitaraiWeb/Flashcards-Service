@@ -1120,6 +1120,45 @@ describe('DecksController (e2e)', () => {
       const res: AllDecksDto[] = result.body;
       expect(res).toEqual([]);
     });
+
+    it('Returns by page', async () => {
+      await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
+
+      const result = await request(server)
+        .get(getDeckEndpoint('own?page=2'))
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
+
+      const res: AllDecksDto[] = result.body;
+      expect(res.length).toBe(1);
+    });
+
+    it('Sorts by title ascending', async () => {
+      await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
+
+      const result = await request(server)
+        .get(getDeckEndpoint('own?sortBy=title&order=asc&page=2'))
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+      const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);      
+      
+      expect(decks).toEqual(sortedDecks);
+    });
+
+    it('Sorts by title descending', async () => {
+      await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
+
+      const result = await request(server)
+        .get(getDeckEndpoint('own?sortBy=title&order=desc'))
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
+
+      const decks: AllDecksDto[] = result.body;
+      const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
+      expect(decks).toEqual(sortedDecks);
+    });
   });
 
   describe('/decks/search (GET)', () => {

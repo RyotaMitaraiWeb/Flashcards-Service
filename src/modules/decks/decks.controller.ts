@@ -60,7 +60,7 @@ export class DecksController {
     @Query('title') title: string): Promise<AllDecksDto[]> {
 
     const sort = sortBuilder(sortBy, order, page);
-    const decks = await this.decksService.searchDecksByTitle(title, sort);    
+    const decks = await this.decksService.searchDecksByTitle(title, sort);
 
     return decks;
   }
@@ -100,9 +100,34 @@ export class DecksController {
   @UseGuards(IsLoggedInGuard)
   @ApiResponse({ status: HttpStatus.OK, description: 'The request is valid' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Missing or invalid JWT in the Authorization header' })
-  async getUserDecks(@Req() req: IRequest) {
+  @ApiQuery({
+    name: 'sortBy',
+    description: `The category by which the decks to be sorted. Default is ${validationRules.deck.search.sortBy[0]}`,
+    enumName: 'sort categories',
+    enum: validationRules.deck.search.sortBy,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'order',
+    description: `Ascending or descending. Default is ${validationRules.deck.search.order[0]}.`,
+    enumName: 'order',
+    enum: validationRules.deck.search.order,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'page',
+    description: `Must be a numeric value. If value is non-numeric, 0, or negative, defaults to 1. Decks per page: ${validationRules.deck.search.limit}`,
+    required: false,
+  })
+  async getUserDecks(
+    @Req() req: IRequest,
+    @Query('sortBy') sortBy: string,
+    @Query('order') order: string,
+    @Query('page') page: string | number
+  ) {
     const id: number = req?.user?.id || 0;
-    const decks = await this.decksService.getUserDecks(id);
+    const sort = sortBuilder(sortBy, order, page);
+    const decks = await this.decksService.getUserDecks(id, sort);
 
     return decks;
   }

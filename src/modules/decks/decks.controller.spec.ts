@@ -233,14 +233,14 @@ describe('DecksController', () => {
         }
       ]);
 
-      const result = await controller.getUserDecks(req);
+      const result = await controller.getUserDecks(req, sort.sortBy, sort.order, sort.page);
       expect(result).toEqual<AllDecksDto[]>([dto]);
     });
 
     it('Works correctly when the getAllDecks service method returns an empty array', async () => {
       jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => [])
       
-      const result = await controller.getUserDecks(req);
+      const result = await controller.getUserDecks(req, sort.sortBy, sort.order, sort.page);
       expect(result).toEqual([]);
     });
   });
