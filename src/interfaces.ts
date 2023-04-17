@@ -82,3 +82,21 @@ export interface ICreatedSession {
   user: IUser;
   token: string;
 }
+
+/**
+ * ```typescript
+ * interface ISorter {
+    page: number;
+    sortBy: sortCategory;
+    order: order;
+  }
+ * ```
+ */
+export interface ISorter {
+  page: number;
+  sortBy: sortCategory;
+  order: order;
+}
+
+export type sortCategory = 'title';
+export type order = 'asc' | 'desc';

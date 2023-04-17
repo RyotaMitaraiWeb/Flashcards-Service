@@ -1,3 +1,5 @@
+import { order, sortCategory } from '../interfaces';
+
 /**
  * An object containing validation rules values.
  */
@@ -21,6 +23,11 @@ export const validationRules = {
     },
     flashcards: {
       minimumFlashcards: 1,
+    },
+    search: {
+      order: ['asc', 'desc'] as order[],
+      sortBy: ['title'] as sortCategory[],
+      limit: 6,
     }
   },
   flashcard: {
