@@ -11,6 +11,7 @@ import { Deck } from '../../decks/entities/deck.entity';
  *  id: number;
  *  username: string;
  *  password: string;
+ *  decks: Deck[];
  * }
  * ```
  */
