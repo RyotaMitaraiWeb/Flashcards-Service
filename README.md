@@ -206,6 +206,20 @@ To get all decks created by a specific user, send a GET request to ``/decks/own`
 ]
 ```
 
+#### Searching decks by title
+Send a GET request to ``/decks/search`` with a query parameter ``title`` to receive all decks that contain the given value in their titles. The response will look like this:
+
+```json
+[
+  {
+    "title": "string",
+    "authorId": 0,
+    "description": "string",
+    "id": 0
+  }
+]
+```
+
 
 #### Deleting a deck
 To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header. The server will respond with 204 for a successful delete or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
@@ -216,6 +230,13 @@ To delete a deck, send a DELETE request to ``/decks/{id}`` and attach the creato
 To edit a deck, send a PUT request to ``/decks/{id}`` and attach the creator's JWT to the ``Authorization`` header with the same JSON format as for POST requests to ``/decks``. The server will respond with 204 for a successful edit or an ``HttpFormattedException``-based JSON and status code of 401, 403, or 404, depending on the type of error.
 
 **Note:** this does not delete any previous flashcards. Rather, the deck's version is incremented and the flashcards in the submission are marked with the new version. Flashcards with older versions are not retrieved in GET requests.
+
+#### Sorting / paginating a list of decks
+For all requests that are responded with an array of decks, you can send query parameters to control the pagination and the way the decks are sorted.
+
+* To control the pagination, attach the query parameter ``page`` with a positive number. The current amount of decks per page is six. If the page is non-positive, non-numeric, or entirely missing, the server will default to page 1.
+* To sort the decks, attach the queries ``sortBy`` with a valid category and ``order`` with ``asc`` or ``desc`` as values. The default configuration (in case those are missing or invalid) are ``title`` and ``asc``, respectively
+* * Currently, you can only sort by the decks' titles.
 
 ### Bookmarks
 This module handles users' saved decks
@@ -273,6 +294,9 @@ An abstract class that can be used to map entity objects to the corresponding DT
 This function takes a string, ``null``, or ``undefined`` as an argument and attempts to retrieve the JWT token.
 
 The string is typically passed as ``Bearer [token]``, with the function extracting the ``[token]`` part. The function returns an empty string if the provided value is ``null``, ``undefined``, or does not start with ``Bearer `` (**note:** this is case sensitive (``Bearer != bearer``) and the space after ``Bearer`` must be there).
+
+```sortBuilder```
+This function lets you create an object with valid sort values. Pass it the ``sortBy``, ``order``, and ``page`` query parameter values from the controllers and you will get an ``ISorter`` object which can be safely used to retrieve sorted and paginated decks.
 
 ## Guards
 ### IsGuest
@@ -350,6 +374,15 @@ interface ICreatedSession {
 }
 ```
 The ``ICreatedSession`` interface represents the response that the server gives upon a successful authentication.
+
+```typescript
+interface ISorter {
+  page: number;
+  sortBy: sortCategory;
+  order: order;
+}
+```
+The ``ISorter`` interface represents an object of values that are used for paginating and sorting an array of decks. Use the ``sortBuilder`` helper function to generate an object like the above with valid values.
 
 ## License
 MIT
