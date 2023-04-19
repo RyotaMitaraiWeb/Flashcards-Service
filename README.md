@@ -44,7 +44,7 @@ npm run test:e22 # end-to-end tests
 * * Validation error messages (e.g. invalid maximum length of username)
 * * Invalid actions messages (e.g. failed login)
 * For custom validators, check ``src/custom-validators``
-* For custom interfaces, check ``interfaces``
+* For custom interfaces, check ``src/interfaces.ts``
 
 Most sections listed here have their own documentation.
 
