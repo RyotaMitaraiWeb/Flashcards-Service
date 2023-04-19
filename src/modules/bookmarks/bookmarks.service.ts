@@ -60,11 +60,19 @@ export class BookmarksService {
     return dto;
   }
 
+  /**
+   * returns all decks that have been saved by the user and have not been marked as deleted.
+   * @param userId 
+   * @returns a Promise that resolves to an array of ``AllDecksDto``
+   */
   async findUserBookmarks(userId: number): Promise<AllDecksDto[]> {
     const bookmarks = await this.bookmarkRepository.find({
       where: {
         isDeleted: false,
         userId,
+        deck: {
+          isDeleted: false,
+        }
       },
       select: {
         deck: {

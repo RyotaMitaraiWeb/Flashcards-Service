@@ -45,7 +45,7 @@ export class DecksService {
 
   /**
    * Retrieves the ``deck`` with the given ID and loads its ``flashbacks`` and relevant properties
-   * or throws an ``HttpFormattedException`` if it does not exist 
+   * or throws an ``HttpNotFoundException`` if it does not exist 
    * or its ``isDeleted`` is set to ``true``.
    * @param id the ID of the deck to be retrieved
    * @returns a Promise that resolves to ``GetDeckDto`` if a deck exists.
