@@ -124,14 +124,14 @@ Note: this documents only the public methods
 ```typescript
 async function register(registerDto: RegisterDto): Promise<UserDto>
 ```
-Attempts to create a new ``Account`` in the database, using the data from ``registerDto``. When successful, returns a Promise that resolves to a ``UserDto``.
+Attempts to create a new ``Account`` in the database, using the data from ``registerDto``.
 
 **Note:** the password is hashed with ``bcrypt``.
 
 ```typescript
 async function login(loginDto: LoginDto): Promise<UserDto>
 ```
-Verifies the credentials provided by the user in the ``loginDto``. If the credentials are valid, returns a Promise that resolves to ``UserDto``, otherwise, throws an ``HttpUnauthorizedException``.
+Verifies the credentials provided by the user in the ``loginDto``. If the credentials are invalid throws an ``HttpUnauthorizedException``.
 
 ```typescript
 async function logout(bearerToken: string): Promise<void> 
