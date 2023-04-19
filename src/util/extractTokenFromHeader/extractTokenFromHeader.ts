@@ -17,7 +17,7 @@
  * @returns the extracted token or an empty string if ``bearerToken`` is ``null``, ``undefined``,
  * or does not start with ``Bearer `` &nbsp;(including the space, case sensitive)
  */
-export function extractTokenFromHeader(bearerToken: string | null | undefined) {
+export function extractTokenFromHeader(bearerToken: string | null | undefined): string {
   if (!bearerToken) {
     return '';
   }
