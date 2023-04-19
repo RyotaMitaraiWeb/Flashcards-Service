@@ -118,9 +118,11 @@ export class DecksService {
   }
 
   /**
-   * Returns an array of all decks that are not marked as deleted.
+   * Returns an array of all decks that are not marked as deleted.   
    * 
    * **Note:** this loads only the decks' ``id``, ``title``, ``description``, and ``authorId``.
+   * @param sortOptions
+
    * @returns a Promise that resolves to an ``AllDecksDto`` array
    */
   async getAllDecks(sortOptions: ISorter): Promise<AllDecksDto[]> {
@@ -146,6 +148,14 @@ export class DecksService {
     return allDecks;
   }
 
+  /**
+   * Finds all decks that have been saved by the user and have not been marked as deleted.
+   * 
+   * * **Note:** this loads only the decks' ``id``, ``title``, ``description``, and ``authorId``.
+   * @param authorId 
+   * @param sortOptions 
+   * @returns 
+   */
   async getUserDecks(authorId: number, sortOptions: ISorter): Promise<AllDecksDto[]> {
     const decks = await this.deckRepository.find({
       where: {
@@ -170,6 +180,14 @@ export class DecksService {
     return decksDto;
   }
 
+  /**
+   * Returns all decks that contain the given string in their title and are not marked as deleted.
+   * 
+   * **Note:** this loads only the decks' ``id``, ``title``, ``description``, and ``authorId``.
+   * @param title the string to be searched
+   * @param sortOptions 
+   * @returns 
+   */
   async searchDecksByTitle(title: string, sortOptions: ISorter): Promise<AllDecksDto[]> {
     const decks = await this.deckRepository.find({
       where: {
