@@ -126,6 +126,74 @@ describe('/decks/own (GET)', () => {
     expect(decks).toEqual(sortedDecks);
   });
 
+  it('Returns the first page of decks (default page) and sorted by default options', async () => {
+    await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
+    const result = await request(server)
+      .get(getDeckEndpoint('own'))
+      .set('Authorization', token)
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+
+    expect(decks.length).toBe(validationRules.deck.search.limit);
+    const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
+    expect(decks).toEqual(sortedDecks);
+  });
+
+  it('Returns the first page of decks (page 1), sorted by title descending', async () => {
+    await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
+    const result = await request(server)
+      .get(getDeckEndpoint('own?order=desc&sortBy=title'))
+      .set('Authorization', token)
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+
+    expect(decks.length).toBe(validationRules.deck.search.limit);
+    const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
+    expect(decks).toEqual(sortedDecks);
+  });
+
+  it('Returns decks on a page different than one', async () => {
+    await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
+    const result = await request(server)
+      .get(getDeckEndpoint('own?page=2'))
+      .set('Authorization', token)
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    expect(decks.length).toBe(1);
+  });
+
+  it('Returns paginated and sorted decks successfully', async () => {
+    const newDeck = createDeck('x');
+    await createDeckMultipleSeeds(app, token, newDeck, validationRules.deck.search.limit);
+
+    const result = await request(server)
+      .get(getDeckEndpoint('own?page=2&sortBy=title&order=desc'))
+      .set('Authorization', token)
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    const lastDeck = decks[0];
+    expect(decks.length).toBe(1);
+    expect(lastDeck.title).toBe(deckSubmission.title);
+  });
+
+  it('Does not retrieve deleted decks', async () => {
+    await request(server)
+      .del(getDeckEndpoint(id1))
+      .set('Authorization', token);
+
+    const result = await request(server)
+      .get(getDeckEndpoint('own'))
+      .set('Authorization', token)
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    expect(decks.length).toBe(0);
+  });
+
   afterEach(async () => {
     await app.close();
   });

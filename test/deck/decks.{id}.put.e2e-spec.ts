@@ -423,6 +423,21 @@ describe('/decks/{id} (PUT)', () => {
     expect(res.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
   });
 
+  it('Returns 404 if the deck is deleted', async () => {
+    await request(server)
+      .del(getDeckEndpoint(id))
+      .set('Authorization', token);
+
+    const result = await request(server)
+      .put(getDeckEndpoint(id))
+      .set('Authorization', token)
+      .send(editDeckSubmission)
+      .expect(HttpStatus.NOT_FOUND);
+
+    const res: IHttpError = result.body;
+    expect(res.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
+  });
+
   afterEach(async () => {
     await app.close();
   });

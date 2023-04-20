@@ -109,6 +109,40 @@ describe('/decks/all (GET)', () => {
     expect(decks).toEqual(sortedDecks);
   });
 
+  it('Returns paginated and sorted decks successfully', async () => {
+    const deck = createDeck('a');
+    const deckMultiple = createDeck('x');
+
+    const createdDeck = await createDeckSeed(app, token, deck);
+    await createDeckMultipleSeeds(app, token, deckMultiple, validationRules.deck.search.limit);
+
+    const result = await request(server)
+      .get(getDeckEndpoint('all?sortBy=title&order=desc&page=2'))
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    const lastDeck = decks[0];
+    expect(decks.length).toBe(1);
+    expect(lastDeck.id).toBe(createdDeck.id);
+  });
+
+  it('Does not retrieve deleted decks', async () => {
+    const d1 = await createDeckSeed(app, token, deckSubmission);
+    const d2 = await createDeckSeed(app, token, deckSubmission);
+
+    await request(server)
+      .del(getDeckEndpoint(d1.id))
+      .set('Authorization', token);
+
+    const result = await request(server)
+      .get(getDeckEndpoint('all'))
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    expect(decks.length).toBe(1);
+    expect(decks[0].id).toBe(d2.id);
+  });
+
   afterEach(async () => {
     await app.close();
   });

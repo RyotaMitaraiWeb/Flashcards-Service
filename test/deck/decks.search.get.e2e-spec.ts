@@ -87,6 +87,36 @@ describe('/decks/search (GET)', () => {
     expect(decks.length).toBe(1);
   });
 
+  it('Returns paginated and sorted decks successfully', async () => {
+    const deck = createDeck('xa');
+
+    await createDeckSeed(app, token, deck);
+
+    const result = await request(server)
+      .get(getDeckEndpoint('search?title=a&page=2&sortBy=title&order=desc'))
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    expect(decks.length).toBe(2);
+  });
+
+  it('Does not retrieve deleted decks', async () => {
+    const deck = createDeck('x');
+    const createdDeck = await createDeckSeed(app, token, deck);
+    await createDeckSeed(app, token, deck);
+
+    await request(server)
+      .del(getDeckEndpoint(createdDeck.id))
+      .set('Authorization', token);
+
+    const result = await request(server)
+      .get(getDeckEndpoint('search?title=xx'))
+      .expect(HttpStatus.OK);
+
+    const decks: AllDecksDto[] = result.body;
+    expect(decks.length).toBe(1);
+  });
+
   afterEach(async () => {
     await app.close();
   });

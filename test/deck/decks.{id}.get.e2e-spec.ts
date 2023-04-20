@@ -10,7 +10,7 @@ import { BookmarksModule } from '../../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../../src/modules/decks/decks.module';
 import { classValidatorContainer } from '../util/classValidatorContainer';
 import { createDeck, createDeckSeed, registerSeed } from '../util/seeds';
-import { IUser } from '../../src/interfaces';
+import { IHttpError, IUser } from '../../src/interfaces';
 import { GetDeckDto } from '../../src/modules/decks/dto/get-deck.dto';
 
 describe('/decks/{id} (GET)', () => {
@@ -137,6 +137,19 @@ describe('/decks/{id} (GET)', () => {
       error: 'Not Found',
       statusCode: HttpStatus.NOT_FOUND,
     });
+  });
+
+  it('Returns 404 if the deck is deleted', async () => {
+    await request(server)
+      .del(getDeckEndpoint(id))
+      .set('Authorization', token);
+
+    const result = await request(server)
+      .get(getDeckEndpoint(id))
+      .expect(HttpStatus.NOT_FOUND);
+
+    const errors: IHttpError = result.body;
+    expect(errors.message.includes(invalidActionsMessages.deckDoesNotExist)).toBe(true);
   });
 
   afterEach(async () => {
