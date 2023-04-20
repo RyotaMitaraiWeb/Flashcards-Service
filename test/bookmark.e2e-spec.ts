@@ -1,9 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { IAuthBody, IDeckSubmission, IDeckSubmissionSuccess } from './util/interfaces';
-import { ICreatedSession, IHttpError, IUser } from '../src/interfaces';
-import { validationRules } from '../src/constants/validationRules';
+import { IHttpError } from '../src/interfaces';
 import { invalidActionsMessages } from '../src/constants/invalidActionsMessages';
 import { TypeOrmSQLITETestingModule } from './util/memoryDatabase';
 import { AccountsModule } from '../src/modules/accounts/accounts.module';
