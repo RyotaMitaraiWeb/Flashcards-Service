@@ -32,7 +32,7 @@ describe('isGuestGuard', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [],
       controllers: [TestController],
       providers: [JwtService],
     }).compile();

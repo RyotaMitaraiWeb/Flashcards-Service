@@ -36,7 +36,7 @@ describe('isNotCreatorGuard', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, ...TypeOrmSQLITETestingModule()],
+      imports: [...TypeOrmSQLITETestingModule()],
       controllers: [TestController],
       providers: [
         JwtService

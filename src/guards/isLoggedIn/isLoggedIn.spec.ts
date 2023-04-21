@@ -32,7 +32,6 @@ describe('isLoggedInGuard', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
       controllers: [TestController],
       providers: [JwtService],
     }).compile();

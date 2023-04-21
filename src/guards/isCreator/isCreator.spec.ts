@@ -36,11 +36,10 @@ describe('isCreatorGuard', () => {
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, ...TypeOrmSQLITETestingModule()],
+      imports: [...TypeOrmSQLITETestingModule()],
       controllers: [TestController],
       providers: [
         JwtService
-        
       ],
     })
       .overrideProvider(getRepositoryToken(Deck))
