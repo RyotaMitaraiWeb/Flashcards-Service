@@ -191,6 +191,19 @@ class AllDecksDto {
 
 This DTO represents the information for decks that are provided in all requests that retrieve a deck of arrays.
 
+```typescript
+class DeckListDto {
+  decks: AllDecksDto[];
+  total: number;
+}
+```
+This DTO represents the response body of ``/decks/search``, ``/decks/own``, and ``/decks/all``. What ``total`` represents depends on the endpoint:
+* for search results, it represents the total amount of decks whose title contain the given string
+* for the ``/own`` endpoint, it represents the total amount of decks that the user has created
+* for the ``/all`` endpoint, it represents the total amount of decks in the entire database.
+
+``total`` does not take into account deleted decks. This property is useful for pagination.
+
 ## Services
 Note: this documents only the public methods
 
@@ -217,19 +230,19 @@ When a deck is updated, its ``version`` will be incremented. The flashcards that
 Note: this does not check if the user is the creator of the deck or not, use the ``IsCreatorGuard`` on the controller to prevent editing from third parties.
 
 ```typescript
-async function getAllDecks(sortOptions: ISorter): Promise<AllDecksDto[]>
+async function getAllDecks(sortOptions: ISorter): Promise<DeckListDto>
 ```
 
-Returns all decks whose ``isDeleted`` is ``false``. ``sortOptions`` allows you to control how the result is paginated and sorted. Use the ``sortBuilder`` function in the controller to get a sorter object with valid values.
+Returns a paginated list of decks whose ``isDeleted`` is ``false`` and the total amount of non-deleted decks in the database. ``sortOptions`` allows you to control how the result is paginated and sorted. Use the ``sortBuilder`` function in the controller to get a sorter object with valid values.
 
 ```typescript
-async function getUserDecks(authorId: number, sortOptions: ISorter): Promise<AllDecksDto[]>
+async function getUserDecks(authorId: number, sortOptions: ISorter): Promise<DeckListDto>
 ```
 
-Returns all decks whose ``authorId`` matches the given parameter. ``sortOptions`` allows you to control how the result is paginated and sorted. Use the ``sortBuilder`` function in the controller to get a sorter object with valid values.
+Returns a paginated list of non-deleted decks whose ``authorId`` matches the given parameter and the total amount of non-deleted decks that the user has created. ``sortOptions`` allows you to control how the result is paginated and sorted. Use the ``sortBuilder`` function in the controller to get a sorter object with valid values.
 
 ```typescript
-async function searchDecksByTitle(title: string, sortOptions: ISorter): Promise<AllDecksDto[]>
+async function searchDecksByTitle(title: string, sortOptions: ISorter): Promise<DeckListDto>
 ```
 
-Returns all decks that contain the given ``title`` in their titles (case insensitive) and whose ``isDeleted`` property is ``false``. ``sortOptions`` allows you to control how the result is paginated and sorted. Use the ``sortBuilder`` function in the controller to get a sorter object with valid values.
+Returns a paginated list of decks and the total amount of decks that contain the given ``title`` in their titles (case insensitive) and whose ``isDeleted`` property is ``false``. ``sortOptions`` allows you to control how the result is paginated and sorted. Use the ``sortBuilder`` function in the controller to get a sorter object with valid values.
