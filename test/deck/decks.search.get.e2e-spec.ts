@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
-import { IDeckSubmissionSuccess } from '../util/interfaces';
 import { TypeOrmSQLITETestingModule } from '../util/memoryDatabase';
 import { validationRules } from '../../src/constants/validationRules';
 import { AccountsModule } from '../../src/modules/accounts/accounts.module';
@@ -9,7 +8,7 @@ import { BookmarksModule } from '../../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../../src/modules/decks/decks.module';
 import { classValidatorContainer } from '../util/classValidatorContainer';
 import { createDeck, createDeckMultipleSeeds, createDeckSeed, registerSeed } from '../util/seeds';
-import { AllDecksDto } from '../../src/modules/decks/dto/all-decks-dto';
+import { DeckListDto } from '../../src/modules/decks/dto/deck-list-dto';
 
 describe('/decks/search (GET)', () => {
   let app: INestApplication;
@@ -23,7 +22,6 @@ describe('/decks/search (GET)', () => {
   process.env.JWT_SECRET = 'QEIOGNWEIOHNWEWQTYQ';
 
   const deckSubmission = createDeck('a');
-  let deckSeeds: IDeckSubmissionSuccess[] = [];
   const deckWithDifferentTitle = createDeck('l');
 
   beforeEach(async () => {
@@ -43,12 +41,11 @@ describe('/decks/search (GET)', () => {
 
     token = `Bearer ${register.token}`;
 
-    deckSeeds = await createDeckMultipleSeeds(
+    await createDeckMultipleSeeds(
       app,
       token,
       deckSubmission,
-      validationRules.deck.search.limit + 1
-
+      validationRules.deck.search.limit + 1,
     );
 
     await createDeckSeed(app, token, deckWithDifferentTitle);
@@ -59,11 +56,12 @@ describe('/decks/search (GET)', () => {
       .get(getDeckEndpoint('search?title=a'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
 
     expect(decks.length).toBe(validationRules.deck.search.limit);
     const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
+    expect(total).toBe(validationRules.deck.search.limit + 1)
   });
 
   it('Returns the first page of decks that match the input (page 1), sorted by title descending', async () => {
@@ -71,11 +69,12 @@ describe('/decks/search (GET)', () => {
       .get(getDeckEndpoint('search?title=a&order=desc&sortBy=title'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
 
     expect(decks.length).toBe(validationRules.deck.search.limit);
     const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Returns decks on a page different than one', async () => {
@@ -83,8 +82,9 @@ describe('/decks/search (GET)', () => {
       .get(getDeckEndpoint('search?page=2&title=a'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
     expect(decks.length).toBe(1);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Returns paginated and sorted decks successfully', async () => {
@@ -96,8 +96,9 @@ describe('/decks/search (GET)', () => {
       .get(getDeckEndpoint('search?title=a&page=2&sortBy=title&order=desc'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
     expect(decks.length).toBe(2);
+    expect(total).toBe(validationRules.deck.search.limit + 2);
   });
 
   it('Does not retrieve deleted decks', async () => {
@@ -113,8 +114,9 @@ describe('/decks/search (GET)', () => {
       .get(getDeckEndpoint('search?title=xx'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
-    expect(decks.length).toBe(1);
+      const { decks, total } = result.body as DeckListDto;
+      expect(decks.length).toBe(1);
+      expect(total).toBe(1);
   });
 
   afterEach(async () => {

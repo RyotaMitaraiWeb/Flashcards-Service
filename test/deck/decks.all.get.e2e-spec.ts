@@ -10,6 +10,7 @@ import { classValidatorContainer } from '../util/classValidatorContainer';
 import { createDeck, createDeckMultipleSeeds, createDeckSeed, registerSeed } from '../util/seeds';
 import { IUser } from '../../src/interfaces';
 import { AllDecksDto } from '../../src/modules/decks/dto/all-decks-dto';
+import { DeckListDto } from '../../src/modules/decks/dto/deck-list-dto';
 
 describe('/decks/all (GET)', () => {
   let app: INestApplication;
@@ -52,8 +53,10 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all'))
       .expect(HttpStatus.OK);
 
-    const res: AllDecksDto[] = result.body;
-    expect(res).toEqual([]);
+    const { decks, total } = result.body as DeckListDto;
+
+    expect(decks).toEqual([]);
+    expect(total).toBe(0);
   });
 
   it('Returns an array of decks', async () => {
@@ -62,8 +65,8 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all'))
       .expect(HttpStatus.OK);
 
-    const res: AllDecksDto[] = result.body;
-    expect(res).toEqual<AllDecksDto[]>([
+    const { decks, total } = result.body as DeckListDto;
+    expect(decks).toEqual<AllDecksDto[]>([
       {
         id: deck.id,
         title: deckSubmission.title,
@@ -71,6 +74,8 @@ describe('/decks/all (GET)', () => {
         authorId: user.id,
       }
     ]);
+
+    expect(total).toBe(1);
   });
 
   it('Returns by page successfully', async () => {
@@ -79,8 +84,9 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all?page=2'))
       .expect(HttpStatus.OK);
 
-    const res: AllDecksDto[] = result.body;
-    expect(res.length).toBe(1);
+    const { decks, total } = result.body as DeckListDto;
+    expect(decks.length).toBe(1);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Returns decks sorted by title ascending', async () => {
@@ -91,7 +97,7 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all?sortBy=title&order=asc'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
     const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
   });
@@ -104,7 +110,7 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all?sortBy=title&order=desc'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
     const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
   });
@@ -120,10 +126,11 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all?sortBy=title&order=desc&page=2'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
     const lastDeck = decks[0];
     expect(decks.length).toBe(1);
     expect(lastDeck.id).toBe(createdDeck.id);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Does not retrieve deleted decks', async () => {
@@ -138,9 +145,10 @@ describe('/decks/all (GET)', () => {
       .get(getDeckEndpoint('all'))
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
     expect(decks.length).toBe(1);
     expect(decks[0].id).toBe(d2.id);
+    expect(total).toBe(1);
   });
 
   afterEach(async () => {

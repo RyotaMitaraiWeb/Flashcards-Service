@@ -11,6 +11,7 @@ import { AllDecksDto } from './dto/all-decks-dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { GetDeckDto } from './dto/get-deck.dto';
 import { ISorter } from '../../interfaces';
+import { DeckListDto } from './dto/deck-list-dto';
 
 describe('DecksService', () => {
   let service: DecksService;
@@ -172,55 +173,70 @@ describe('DecksService', () => {
       dto.id = 1;
       dto.authorId = 1;
 
-      jest.spyOn(deckRepository, 'find').mockImplementation(async () => {
+      jest.spyOn(deckRepository, 'findAndCount').mockImplementation(async () => {
         const deck = new Deck();
         deck.title = dto.title;
         deck.description = dto.description;
         deck.authorId = dto.authorId;
         deck.id = dto.id;
 
-        return [deck];
+        const decks = [deck];
+        return [decks, 1];
       });
 
       const result = await service.getAllDecks(sort);
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [dto],
+        total: 1,
+      });
     });
 
     it('Works correctly when the repository returns an empty array', async () => {
-      jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
+      jest.spyOn(deckRepository, 'findAndCount').mockImplementation(async () => [[], 0]);
       
       const result = await service.getAllDecks(sort);
-      expect(result).toEqual([]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0,
+      });
     });
   });
 
   describe('getUserDecks', () => {
-    it('Returns a AllDecksDto array representation of whatever the repository returns', async () => {
+    it('Returns a DeckListDto representation of whatever the repository returns', async () => {
       const dto = new AllDecksDto();
       dto.title = 'a';
       dto.description = 'a';
       dto.id = 1;
       dto.authorId = 1;
 
-      jest.spyOn(deckRepository, 'find').mockImplementation(async () => {
+      jest.spyOn(deckRepository, 'findAndCount').mockImplementation(async () => {
         const deck = new Deck();
         deck.title = dto.title;
         deck.description = dto.description;
         deck.authorId = dto.authorId;
         deck.id = dto.id;
 
-        return [deck];
+        const decks = [deck];
+
+        return [decks, 1];
       });
 
       const result = await service.getUserDecks(dto.authorId, sort);
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [dto],
+        total: 1,
+      });
     });
 
     it('Works correctly when the repository returns an empty array', async () => {
-      jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
+      jest.spyOn(deckRepository, 'findAndCount').mockImplementation(async () => [[], 0]);
       
       const result = await service.getUserDecks(1, sort);
-      expect(result).toEqual([]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0,
+      });
     });
   });
 
@@ -238,24 +254,37 @@ describe('DecksService', () => {
       dto.id = 1;
       dto.title = 'a';
 
-      jest.spyOn(deckRepository, 'find').mockImplementation(async () => {
+      jest.spyOn(deckRepository, 'findAndCount').mockImplementation(async () => {
         const deck = new Deck();
         deck.title = dto.title;
         deck.authorId = dto.authorId;
         deck.id = dto.id;
         deck.description = dto.description;
-        return [deck];
+
+        const decks = [deck];
+        return [decks, decks.length];
       });
 
       const decks = await service.searchDecksByTitle('a', sort);
-      expect(decks).toEqual<AllDecksDto[]>([dto]);
+      expect(decks).toEqual<DeckListDto>({
+        decks: [{
+          id: dto.id,
+          title: dto.title,
+          authorId: dto.authorId,
+          description: dto.description,
+        }],
+        total: 1,
+      });
     });
 
     it('Works correctly when the repository returns an empty array', async () => {
-      jest.spyOn(deckRepository, 'find').mockImplementation(async () => []);
+      jest.spyOn(deckRepository, 'findAndCount').mockImplementation(async () => [[], 0]);
 
       const decks = await service.searchDecksByTitle('a', sort);
-      expect(decks).toEqual<AllDecksDto[]>([]);
+      expect(decks).toEqual<DeckListDto>({
+        decks: [],
+        total: 0
+      });
     });
   });
 });

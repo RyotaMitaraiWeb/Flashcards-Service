@@ -14,6 +14,8 @@ import { AllDecksDto } from './dto/all-decks-dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { BookmarksService } from '../bookmarks/bookmarks.service';
 import { Bookmark } from '../bookmarks/entities/bookmark.entity';
+import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
+import { DeckListDto } from './dto/deck-list-dto';
 
 describe('DecksController', () => {
   let controller: DecksController;
@@ -188,24 +190,33 @@ describe('DecksController', () => {
       dto.authorId = 1;
       dto.title = 'a';
       dto.description = 'a';
-      jest.spyOn(deckService, 'getAllDecks').mockImplementation(async () => [
+      jest.spyOn(deckService, 'getAllDecks').mockImplementation(async () => (
         {
-          id: dto.id,
-          authorId: dto.authorId,
-          title: dto.title,
-          description: dto.description,
+          decks: [dto],
+          total: 0,
         }
-      ]);
+      ));
 
       const result = await controller.getAllDecks(sort.sortBy, sort.order, sort.page);
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [dto],
+        total: 0,
+      });
     });
 
     it('Works correctly when the getAllDecks service method returns an empty array', async () => {
-      jest.spyOn(deckService, 'getAllDecks').mockImplementation(async () => [])
-      
+      jest.spyOn(deckService, 'getAllDecks').mockImplementation(async () => (
+        {
+          decks: [],
+          total: 0,
+        }
+      ));
+
       const result = await controller.getAllDecks(sort.sortBy, sort.order, sort.page);
-      expect(result).toEqual([]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0,
+      });
     });
   });
 
@@ -224,24 +235,38 @@ describe('DecksController', () => {
       dto.authorId = authorId;
       dto.title = 'a';
       dto.description = 'a';
-      jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => [
-        {
-          id: dto.id,
-          authorId: dto.authorId,
-          title: dto.title,
-          description: dto.description,
-        }
-      ]);
+      jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => {
+        const deck = new AllDecksDto();
+        deck.authorId = dto.authorId;
+        deck.description = dto.description;
+        deck.id = dto.id;
+        deck.title = dto.title;
+
+        const decks = [deck];
+        const deckList = DtoTransformer.ToDeckListDto(decks, 1);
+        return deckList;
+      });
 
       const result = await controller.getUserDecks(req, sort.sortBy, sort.order, sort.page);
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [dto],
+        total: 1,
+      });
     });
 
     it('Works correctly when the getAllDecks service method returns an empty array', async () => {
-      jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => [])
-      
+      jest.spyOn(deckService, 'getUserDecks').mockImplementation(async () => {
+        const deckList = new DeckListDto();
+        deckList.decks = [];
+        deckList.total = 0;
+        return deckList;
+      });
+
       const result = await controller.getUserDecks(req, sort.sortBy, sort.order, sort.page);
-      expect(result).toEqual([]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0,
+      });
     });
   });
 
@@ -252,17 +277,34 @@ describe('DecksController', () => {
       dto.description = '';
       dto.id = 1;
       dto.authorId = 1;
-      jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => [dto]);
+      jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => {
+        const decks = DtoTransformer.ToDeckListDto([dto], 1);
+        return decks;
+      });
 
       const result = await controller.searchDecksByTitle(sort.sortBy, sort.order, sort.page, 'a');
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [{
+          id: dto.id,
+          title: dto.title,
+          description: dto.description,
+          authorId: dto.authorId,
+        }],
+        total: 1
+      });
     });
 
     it('Works correctly when searchDecksByTitle service method returns an empty array', async () => {
-      jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => []);
+      jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => {
+        const decks = DtoTransformer.ToDeckListDto([], 0);
+        return decks;
+      });
 
       const result = await controller.searchDecksByTitle(sort.sortBy, sort.order, sort.page, 'a');
-      expect(result).toEqual<AllDecksDto[]>([]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0
+      });
     });
   });
 });

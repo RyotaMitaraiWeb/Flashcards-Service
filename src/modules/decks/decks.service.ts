@@ -15,6 +15,7 @@ import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { ISorter } from '../../interfaces';
 import { validationRules } from '../../constants/validationRules';
+import { DeckListDto } from './dto/deck-list-dto';
 
 @Injectable()
 export class DecksService {
@@ -125,8 +126,8 @@ export class DecksService {
 
    * @returns a Promise that resolves to an ``AllDecksDto`` array
    */
-  async getAllDecks(sortOptions: ISorter): Promise<AllDecksDto[]> {
-    const decks = await this.deckRepository.find({
+  async getAllDecks(sortOptions: ISorter): Promise<DeckListDto> {
+    const [decks, total] = await this.deckRepository.findAndCount({
       where: {
         isDeleted: false,
       },
@@ -145,7 +146,8 @@ export class DecksService {
     });
 
     const allDecks = decks.map(d => DtoTransformer.toAllDecksDto(d));
-    return allDecks;
+    const deckList = DtoTransformer.ToDeckListDto(allDecks, total);
+    return deckList;
   }
 
   /**
@@ -156,8 +158,8 @@ export class DecksService {
    * @param sortOptions 
    * @returns 
    */
-  async getUserDecks(authorId: number, sortOptions: ISorter): Promise<AllDecksDto[]> {
-    const decks = await this.deckRepository.find({
+  async getUserDecks(authorId: number, sortOptions: ISorter): Promise<DeckListDto> {
+    const [decks, total] = await this.deckRepository.findAndCount({
       where: {
         isDeleted: false,
         authorId,
@@ -177,7 +179,8 @@ export class DecksService {
     });
 
     const decksDto = decks.map(d => DtoTransformer.toAllDecksDto(d));
-    return decksDto;
+    const deckList = DtoTransformer.ToDeckListDto(decksDto, total);
+    return deckList;
   }
 
   /**
@@ -188,8 +191,8 @@ export class DecksService {
    * @param sortOptions 
    * @returns 
    */
-  async searchDecksByTitle(title: string, sortOptions: ISorter): Promise<AllDecksDto[]> {
-    const decks = await this.deckRepository.find({
+  async searchDecksByTitle(title: string, sortOptions: ISorter): Promise<DeckListDto> {
+    const [decks, total] = await this.deckRepository.findAndCount({
       where: {
         title: ILike(`%${title}%`),
         isDeleted: false,
@@ -203,7 +206,8 @@ export class DecksService {
     });
 
     const dtos = decks.map(d => DtoTransformer.toAllDecksDto(d));
-    return dtos;
+    const deckList = DtoTransformer.ToDeckListDto(dtos, total);
+    return deckList;
   }
   
   /**

@@ -11,6 +11,7 @@ import { BookmarksService } from '../bookmarks/bookmarks.service';
 import { validationRules } from '../../constants/validationRules';
 import { AllDecksDto } from './dto/all-decks-dto';
 import { sortBuilder } from '../../util/sort-builder/sort-builder';
+import { DeckListDto } from './dto/deck-list-dto';
 
 @Controller('decks')
 @ApiBearerAuth('jwt')
@@ -57,7 +58,7 @@ export class DecksController {
     @Query('sortBy') sortBy: string,
     @Query('order') order: string,
     @Query('page') page: string | number,
-    @Query('title') title: string): Promise<AllDecksDto[]> {
+    @Query('title') title: string): Promise<DeckListDto> {
 
     const sort = sortBuilder(sortBy, order, page);
     const decks = await this.decksService.searchDecksByTitle(title, sort);
@@ -90,7 +91,7 @@ export class DecksController {
     @Query('sortBy') sortBy: string,
     @Query('order') order: string,
     @Query('page') page: string | number,
-  ) {
+  ): Promise<DeckListDto> {
 
     const sort = sortBuilder(sortBy, order, page);
     return await this.decksService.getAllDecks(sort);
@@ -124,7 +125,7 @@ export class DecksController {
     @Query('sortBy') sortBy: string,
     @Query('order') order: string,
     @Query('page') page: string | number
-  ) {
+  ): Promise<DeckListDto> {
     const id: number = req?.user?.id || 0;
     const sort = sortBuilder(sortBy, order, page);
     const decks = await this.decksService.getUserDecks(id, sort);

@@ -3,6 +3,7 @@ import { Account } from '../../modules/accounts/entities/account.entity';
 import { BookmarkDto } from '../../modules/bookmarks/dto/bookmark.dto';
 import { Bookmark } from '../../modules/bookmarks/entities/bookmark.entity';
 import { AllDecksDto } from '../../modules/decks/dto/all-decks-dto';
+import { DeckListDto } from '../../modules/decks/dto/deck-list-dto';
 import { GetDeckDto } from '../../modules/decks/dto/get-deck.dto';
 import { Deck } from '../../modules/decks/entities/deck.entity';
 
@@ -67,6 +68,13 @@ export abstract class DtoTransformer {
     const dto = new UserDto();
     dto.id = account.id;
     dto.username = account.username;
+    return dto;
+  }
+
+  static ToDeckListDto(decks: AllDecksDto[], total: number): DeckListDto {
+    const dto = new DeckListDto();
+    dto.decks = decks;
+    dto.total = total;
     return dto;
   }
 }

@@ -3,23 +3,24 @@ import { Account } from '../../modules/accounts/entities/account.entity';
 import { BookmarkDto } from '../../modules/bookmarks/dto/bookmark.dto';
 import { Bookmark } from '../../modules/bookmarks/entities/bookmark.entity';
 import { AllDecksDto } from '../../modules/decks/dto/all-decks-dto';
+import { DeckListDto } from '../../modules/decks/dto/deck-list-dto';
 import { GetDeckDto } from '../../modules/decks/dto/get-deck.dto';
 import { Deck } from '../../modules/decks/entities/deck.entity';
 import { DtoTransformer } from './DtoTransformer';
 
 describe('DtoTransformer', () => {
   const deck = new Deck();
-    deck.title = 'a';
-    deck.description = 'a';
-    deck.flashcards = [{
-      front: 'a',
-      back: 'a',
-      id: 1,
-      version: 1,
-      deck: new Deck(),
-    }];
-    deck.id = 1;
-    deck.authorId = 1;
+  deck.title = 'a';
+  deck.description = 'a';
+  deck.flashcards = [{
+    front: 'a',
+    back: 'a',
+    id: 1,
+    version: 1,
+    deck: new Deck(),
+  }];
+  deck.id = 1;
+  deck.authorId = 1;
 
   const account = new Account();
   account.id = 1;
@@ -93,6 +94,30 @@ describe('DtoTransformer', () => {
       expect(dto).toEqual<UserDto>({
         id: account.id,
         username: account.username,
+      });
+    });
+  });
+
+  describe('ToDeckListDto', () => {
+    const dto = new AllDecksDto();
+      dto.id = 1;
+      dto.authorId = 1;
+      dto.title = 'a';
+      dto.description = 'a';
+
+    it('works', () => {
+      const result = DtoTransformer.ToDeckListDto([dto], 1);
+      expect(result).toEqual<DeckListDto>({
+        decks: [dto],
+        total: 1,
+      });
+    });
+
+    it('works with an empty array', () => {
+      const result = DtoTransformer.ToDeckListDto([], 0);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0,
       });
     });
   })

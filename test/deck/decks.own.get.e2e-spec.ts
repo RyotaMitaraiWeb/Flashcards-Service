@@ -12,6 +12,7 @@ import { createDeck, createDeckMultipleSeeds, createDeckSeed, registerSeed } fro
 import { IUser, IHttpError } from '../../src/interfaces';
 import { AllDecksDto } from '../../src/modules/decks/dto/all-decks-dto';
 import { IDeckSubmissionSuccess } from '../util/interfaces';
+import { DeckListDto } from '../../src/modules/decks/dto/deck-list-dto';
 
 describe('/decks/own (GET)', () => {
   let app: INestApplication;
@@ -83,8 +84,9 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const res: AllDecksDto[] = result.body;
-    expect(res).toEqual([]);
+    const { decks, total } = result.body as DeckListDto;
+    expect(decks).toEqual([]);
+    expect(total).toBe(0);
   });
 
   it('Returns by page', async () => {
@@ -95,8 +97,9 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const res: AllDecksDto[] = result.body;
-    expect(res.length).toBe(1);
+    const { decks, total } = result.body as DeckListDto;
+    expect(decks.length).toBe(1);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Sorts by title ascending', async () => {
@@ -107,7 +110,7 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+      const { decks } = result.body as DeckListDto;
     const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
 
     expect(decks).toEqual(sortedDecks);
@@ -121,7 +124,7 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks } = result.body as DeckListDto;
     const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
   });
@@ -133,11 +136,12 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const{ decks, total } = result.body as DeckListDto;
 
     expect(decks.length).toBe(validationRules.deck.search.limit);
     const sortedDecks = [...decks].sort((a, b) => a.title.localeCompare(b.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Returns the first page of decks (page 1), sorted by title descending', async () => {
@@ -147,11 +151,12 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+    const { decks, total } = result.body as DeckListDto;
 
     expect(decks.length).toBe(validationRules.deck.search.limit);
     const sortedDecks = [...decks].sort((a, b) => b.title.localeCompare(a.title) || a.id - b.id);
     expect(decks).toEqual(sortedDecks);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Returns decks on a page different than one', async () => {
@@ -161,8 +166,9 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
-    expect(decks.length).toBe(1);
+      const { decks, total } = result.body as DeckListDto;
+      expect(decks.length).toBe(1);
+      expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Returns paginated and sorted decks successfully', async () => {
@@ -174,10 +180,11 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+      const { decks, total } = result.body as DeckListDto;
     const lastDeck = decks[0];
     expect(decks.length).toBe(1);
     expect(lastDeck.title).toBe(deckSubmission.title);
+    expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
   it('Does not retrieve deleted decks', async () => {
@@ -190,8 +197,9 @@ describe('/decks/own (GET)', () => {
       .set('Authorization', token)
       .expect(HttpStatus.OK);
 
-    const decks: AllDecksDto[] = result.body;
+      const { decks, total } = result.body as DeckListDto;
     expect(decks.length).toBe(0);
+    expect(total).toBe(0);
   });
 
   afterEach(async () => {
