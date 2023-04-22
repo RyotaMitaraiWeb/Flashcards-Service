@@ -86,7 +86,7 @@ describe('/decks/all (GET)', () => {
     expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
-  it('Returns decks sorted by title ascending', async () => {
+  it('Returns decks sorted by a categoru ascending', async () => {
     const differentDeck = createDeck('x');
     await createDeckSeed(app, token, differentDeck);
 
@@ -99,7 +99,7 @@ describe('/decks/all (GET)', () => {
     expect(decks).toEqual(sortedDecks);
   });
 
-  it('Returns decks sorted by title descending', async () => {
+  it('Returns decks sorted by a category descending', async () => {
     const differentDeck = createDeck('x');
     await createDeckSeed(app, token, differentDeck);
 

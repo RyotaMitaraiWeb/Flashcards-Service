@@ -121,7 +121,7 @@ For all requests that are responded with an array of decks, you can send query p
 
 * To control the pagination, attach the query parameter ``page`` with a positive number. The current amount of decks per page is six. If the page is non-positive, non-numeric, or entirely missing, the server will default to page 1.
 * To sort the decks, attach the queries ``sortBy`` with a valid category and ``order`` with ``asc`` or ``desc`` as values. The default configuration (in case those are missing or invalid) are ``title`` and ``asc``, respectively
-* * Currently, you can only sort by the decks' titles.
+* * Currently, you can  sort by the decks' titles, creation dates, and update dates.
 
 ## Entities
 ```typescript

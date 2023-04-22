@@ -64,7 +64,7 @@ describe('/decks/search (GET)', () => {
     expect(total).toBe(validationRules.deck.search.limit + 1)
   });
 
-  it('Returns the first page of decks that match the input (page 1), sorted by title descending', async () => {
+  it('Returns the first page of decks that match the input (page 1), sorted by a category descending', async () => {
     const result = await request(server)
       .get(getDeckEndpoint('search?title=a&order=desc&sortBy=title'))
       .expect(HttpStatus.OK);

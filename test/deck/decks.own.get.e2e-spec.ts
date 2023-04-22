@@ -102,7 +102,7 @@ describe('/decks/own (GET)', () => {
     expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
-  it('Sorts by title ascending', async () => {
+  it('Sorts by a category ascending', async () => {
     await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
 
     const result = await request(server)
@@ -116,7 +116,7 @@ describe('/decks/own (GET)', () => {
     expect(decks).toEqual(sortedDecks);
   });
 
-  it('Sorts by title descending', async () => {
+  it('Sorts by a category descending', async () => {
     await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
 
     const result = await request(server)
@@ -144,7 +144,7 @@ describe('/decks/own (GET)', () => {
     expect(total).toBe(validationRules.deck.search.limit + 1);
   });
 
-  it('Returns the first page of decks (page 1), sorted by title descending', async () => {
+  it('Returns the first page of decks (page 1), sorted by a category descending', async () => {
     await createDeckMultipleSeeds(app, token, deckSubmission, validationRules.deck.search.limit);
     const result = await request(server)
       .get(getDeckEndpoint('own?order=desc&sortBy=title'))

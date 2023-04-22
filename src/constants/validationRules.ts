@@ -26,7 +26,7 @@ export const validationRules = {
     },
     search: {
       order: ['asc', 'desc'] as order[],
-      sortBy: ['title'] as sortCategory[],
+      sortBy: ['title', 'createdAt', 'updatedAt'] as sortCategory[],
       limit: 6,
     }
   },

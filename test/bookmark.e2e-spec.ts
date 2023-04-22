@@ -215,7 +215,7 @@ describe('BookmarkController (e2e)', () => {
       expect(total2).toBe(validationRules.deck.search.limit + 1);
     });
 
-    it('Sorts the decks by title successfully', async () => {
+    it('Sorts the decks by a category successfully', async () => {
       const deckSubmission = createDeck('x');
       const deckIds = await createDeckMultipleSeeds(app, token2, deckSubmission, validationRules.deck.search.limit);
       for (const deck of deckIds) {

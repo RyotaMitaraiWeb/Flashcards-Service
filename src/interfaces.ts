@@ -98,5 +98,5 @@ export interface ISorter {
   order: order;
 }
 
-export type sortCategory = 'title';
+export type sortCategory = 'title' | 'createdAt' | 'updatedAt';
 export type order = 'asc' | 'desc';
