@@ -6,11 +6,12 @@ import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Deck } from '../decks/entities/deck.entity';
-import { IRequest } from '../../interfaces';
+import { IRequest, ISorter } from '../../interfaces';
 import { HttpFormattedException } from '../../util/HttpFormattedException';
 import { BookmarkDto } from './dto/bookmark.dto';
 import { HttpNotFoundException } from '../../util/exceptions/HttpNotFoundException';
 import { AllDecksDto } from '../decks/dto/all-decks-dto';
+import { DeckListDto } from '../decks/dto/deck-list-dto';
 
 const req: IRequest = {
   headers: {},
@@ -22,6 +23,12 @@ const req: IRequest = {
     username: 'a',
   }
 };
+
+const sort: ISorter = {
+  page: 1,
+  sortBy: 'title',
+  order: 'asc'
+}
 
 describe('BookmarksController', () => {
   let controller: BookmarksController;
@@ -94,10 +101,18 @@ describe('BookmarksController', () => {
     dto.title = 'a';
     
     it('Returns whatever the findUserBookmarks service method returns', async () => {
-      jest.spyOn(bookmarkService, 'findUserBookmarks').mockImplementation(async () => [dto]);
+      jest.spyOn(bookmarkService, 'findUserBookmarks').mockImplementation(async () => (
+        {
+          decks: [dto],
+          total: 1,
+        }
+      ));
 
-      const result = await controller.getSavedDecks(req);
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      const result = await controller.getSavedDecks(req, sort.sortBy, sort.order, sort.page);
+      expect(result).toEqual<DeckListDto>({
+        decks: [dto],
+        total: 1,
+      });
     });
   });
 });

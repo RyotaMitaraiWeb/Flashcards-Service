@@ -9,7 +9,9 @@ import { BookmarksModule } from '../src/modules/bookmarks/bookmarks.module';
 import { DecksModule } from '../src/modules/decks/decks.module';
 import { classValidatorContainer } from './util/classValidatorContainer';
 import { AllDecksDto } from '../src/modules/decks/dto/all-decks-dto';
-import { createDeck, createDeckSeed, registerSeed } from './util/seeds';
+import { createDeck, createDeckMultipleSeeds, createDeckSeed, registerSeed } from './util/seeds';
+import { DeckListDto } from '../src/modules/decks/dto/deck-list-dto';
+import { validationRules } from '../src/constants/validationRules';
 
 describe('BookmarkController (e2e)', () => {
   let app: INestApplication;
@@ -170,9 +172,10 @@ describe('BookmarkController (e2e)', () => {
         .set('Authorization', token2)
         .expect(HttpStatus.OK);
 
-      const res: AllDecksDto[] = result.body;
-      expect(res.length).toBe(1);
-      expect(res[0].id).toBe(deckId1);
+      const { decks, total } = result.body as DeckListDto;
+      expect(decks.length).toBe(1);
+      expect(decks[0].id).toBe(deckId1);
+      expect(total).toBe(1);
     });
 
     it('Returns an empty array if the user has not bookmarked any decks', async () => {
@@ -181,8 +184,99 @@ describe('BookmarkController (e2e)', () => {
         .set('Authorization', token2)
         .expect(HttpStatus.OK);
 
-      const res: AllDecksDto[] = result.body;
-      expect(res).toEqual([]);
+      const { decks, total } = result.body as DeckListDto;
+      expect(decks).toEqual([]);
+      expect(total).toBe(0);
+    });
+
+    it('Paginates successfully', async () => {
+      const deckSubmission = createDeck('x');
+      const deckIds = await createDeckMultipleSeeds(app, token2, deckSubmission, validationRules.deck.search.limit + 1);
+      for (const deck of deckIds) {
+        await request(server)
+          .post(bookmarkEndpoint(deck.id))
+          .set('Authorization', token1);
+      }
+
+      const result1 = await request(server)
+        .get(bookmarkGetEndpoint)
+        .set('Authorization', token1);
+
+      const { decks, total } = result1.body as DeckListDto;
+      expect(decks.length).toBe(validationRules.deck.search.limit);
+      expect(total).toBe(validationRules.deck.search.limit + 1);
+
+      const result2 = await request(server)
+        .get(`${bookmarkGetEndpoint}?page=2`)
+        .set('Authorization', token1);
+
+      const { decks: decks2, total: total2 } = result2.body as DeckListDto;
+      expect(decks2.length).toBe(1);
+      expect(total2).toBe(validationRules.deck.search.limit + 1);
+    });
+
+    it('Sorts the decks by title successfully', async () => {
+      const deckSubmission = createDeck('x');
+      const deckIds = await createDeckMultipleSeeds(app, token2, deckSubmission, validationRules.deck.search.limit);
+      for (const deck of deckIds) {
+        await request(server)
+          .post(bookmarkEndpoint(deck.id))
+          .set('Authorization', token1);
+      }
+
+      const newDeck = createDeck('a');
+      const newDeckResult = await createDeckSeed(app, token2, newDeck);
+      await request(server)
+        .post(bookmarkEndpoint(newDeckResult.id))
+        .set('Authorization', token1);
+
+      const result1 = await request(server)
+        .get(bookmarkGetEndpoint)
+        .set('Authorization', token1);
+
+      const { decks: decks1 } = result1.body as DeckListDto;
+      const sortedDecks1 = [...decks1].sort((d1, d2) => d1.title.localeCompare(d2.title) || d1.id - d2.id);
+      expect(decks1).toEqual(sortedDecks1);
+
+      const result2 = await request(server)
+        .get(`${bookmarkGetEndpoint}?sortBy=title&order=asc`)
+        .set('Authorization', token1);
+
+      const { decks: decks2 } = result2.body as DeckListDto;
+      expect(decks2).toEqual(sortedDecks1);
+
+      const result3 = await request(server)
+        .get(`${bookmarkGetEndpoint}?sortBy=title&order=desc`)
+        .set('Authorization', token1);
+
+      const { decks: decks3 } = result3.body as DeckListDto;
+      const sortedDecks2 = [...decks3].sort((d1, d2) => d2.title.localeCompare(d1.title) || d1.id - d2.id);
+      expect(sortedDecks2).toEqual(decks3);
+    });
+
+    it('Sorts and paginates successfully', async () => {
+      const deckSubmission = createDeck('x');
+      const deckIds = await createDeckMultipleSeeds(app, token2, deckSubmission, validationRules.deck.search.limit);
+
+      for (const deck of deckIds) {
+        await request(server)
+          .post(bookmarkEndpoint(deck.id))
+          .set('Authorization', token1);
+      }
+
+      const newDeck = createDeck('a');
+      const newDeckResult = await createDeckSeed(app, token2, newDeck);
+      await request(server)
+        .post(bookmarkEndpoint(newDeckResult.id))
+        .set('Authorization', token1);
+
+      const result = await request(server)
+        .get(`${bookmarkGetEndpoint}?sortBy=title&order=desc&page=2`)
+        .set('Authorization', token1);
+
+      const { decks } = result.body as DeckListDto;
+      expect(decks.length).toBe(1);
+      expect(decks[0].title).toBe('a'.repeat(validationRules.deck.title.minLength));
     });
 
     it('Returns 401 if the user is not logged in', async () => {

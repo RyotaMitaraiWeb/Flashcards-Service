@@ -10,6 +10,9 @@ import { invalidActionsMessages } from '../../constants/invalidActionsMessages';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 import { AllDecksDto } from '../decks/dto/all-decks-dto';
+import { DeckListDto } from '../decks/dto/deck-list-dto';
+import { ISorter } from '../../interfaces';
+import { validationRules } from '../../constants/validationRules';
 
 @Injectable()
 export class BookmarksService {
@@ -65,8 +68,8 @@ export class BookmarksService {
    * @param userId 
    * @returns a Promise that resolves to an array of ``AllDecksDto``
    */
-  async findUserBookmarks(userId: number): Promise<AllDecksDto[]> {
-    const bookmarks = await this.bookmarkRepository.find({
+  async findUserBookmarks(userId: number, sortOptions: ISorter): Promise<DeckListDto> {
+    const [bookmarks, total] = await this.bookmarkRepository.findAndCount({
       where: {
         isDeleted: false,
         userId,
@@ -82,13 +85,22 @@ export class BookmarksService {
           authorId: true,
         },
       },
+      order: {
+        deck: {
+          [sortOptions.sortBy]: sortOptions.order,
+          id: 'asc',
+        },
+      },
+      take: validationRules.deck.search.limit,
+      skip: (sortOptions.page - 1) * validationRules.deck.search.limit,
       relations: {
         deck: true,
       }
     });
 
     const decks = bookmarks.map(b => DtoTransformer.toAllDecksDto(b.deck));
-    return decks;
+    const dtos = DtoTransformer.ToDeckListDto(decks, total);
+    return dtos;
   }
 
   async checkIfUserHasBookmarkedDeck(userId: number, deckId: number): Promise<boolean> {

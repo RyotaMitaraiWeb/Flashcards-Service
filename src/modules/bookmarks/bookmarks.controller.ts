@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatus, Req, HttpCode, Query } from '@nestjs/common';
 import { BookmarksService } from './bookmarks.service';
 import { BookmarkDto } from './dto/bookmark.dto';
 import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
@@ -6,12 +6,14 @@ import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsNotCreatorGuard } from '../../guards/isNotCreator/isNotCreator';
 import { IRequest } from '../../interfaces';
 import { AllDecksDto } from '../decks/dto/all-decks-dto';
+import { DeckListDto } from '../decks/dto/deck-list-dto';
+import { sortBuilder } from '../../util/sort-builder/sort-builder';
 
 @ApiTags('bookmarks')
 @ApiBearerAuth('jwt')
 @Controller('bookmarks')
 export class BookmarksController {
-  constructor(private readonly bookmarksService: BookmarksService) {}
+  constructor(private readonly bookmarksService: BookmarksService) { }
 
   @UseGuards(IsLoggedInGuard, IsNotCreatorGuard)
   @Post(':id')
@@ -57,9 +59,16 @@ export class BookmarksController {
   @UseGuards(IsLoggedInGuard)
   @ApiResponse({ status: HttpStatus.OK, description: 'Request is valid' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
-  async getSavedDecks(@Req() req: IRequest): Promise<AllDecksDto[]> {
+  async getSavedDecks(
+    @Req() req: IRequest,
+    @Query('sortBy') sortBy: string,
+    @Query('order') order: string,
+    @Query('page') page: string | number
+  ): Promise<DeckListDto> {
     const userId = Number(req?.user.id) || 0;
-    const decks = await this.bookmarksService.findUserBookmarks(userId);
+
+    const sort = sortBuilder(sortBy, order, page);
+    const decks = await this.bookmarksService.findUserBookmarks(userId, sort);
 
     return decks;
   }

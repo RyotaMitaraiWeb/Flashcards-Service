@@ -9,10 +9,17 @@ import { BookmarkDto } from './dto/bookmark.dto';
 import { HttpForbiddenException } from '../../util/exceptions/HttpForbiddenException';
 import { DtoTransformer } from '../../util/dto-transform/DtoTransformer';
 import { AllDecksDto } from '../decks/dto/all-decks-dto';
+import { DeckListDto } from '../decks/dto/deck-list-dto';
+import { ISorter } from '../../interfaces';
 
 describe('BookmarksService', () => {
   let service: BookmarksService;
   let bookmarkRepository: Repository<Bookmark>;
+  const sort: ISorter = {
+    page: 1,
+    sortBy: 'title',
+    order: 'asc'
+  }
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -99,24 +106,34 @@ describe('BookmarksService', () => {
 
     const dto = DtoTransformer.toAllDecksDto(deck);
 
-    it('Returns an array of AllDecksDto when successful', async () => {
-      jest.spyOn(bookmarkRepository, 'find').mockImplementation(async () => {
+    it('Returns a DeckListDto when successful', async () => {
+      jest.spyOn(bookmarkRepository, 'findAndCount').mockImplementation(async () => {
         const bookmark = new Bookmark();
         bookmark.deck = deck;
-        return [bookmark]
+
+        const bookmarks = [bookmark];
+        return [bookmarks, 1];
       });
 
-      const result = await service.findUserBookmarks(deck.authorId);
+      const result = await service.findUserBookmarks(deck.authorId, sort);
 
-      expect(result).toEqual<AllDecksDto[]>([dto]);
+      expect(result).toEqual<DeckListDto>(
+        {
+          decks: [dto],
+          total: 1,
+        }
+      );
     });
 
     it('Works normally if the repository returns an empty array', async () => {
-      jest.spyOn(bookmarkRepository, 'find').mockImplementation(async () => []);
+      jest.spyOn(bookmarkRepository, 'findAndCount').mockImplementation(async () => [[], 0]);
 
-      const result = await service.findUserBookmarks(deck.authorId);
+      const result = await service.findUserBookmarks(deck.authorId, sort);
 
-      expect(result).toEqual<AllDecksDto[]>([]);
+      expect(result).toEqual<DeckListDto>({
+        decks: [],
+        total: 0,
+      });
     });
   });
 
