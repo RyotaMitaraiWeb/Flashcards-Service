@@ -48,7 +48,9 @@ To get a specific deck, send a GET request to ``/decks/{id}`` (where ``{id}`` is
   ],
   "description": "your_description",
   "authorId": 0, // this will be the author's account ID
-  "bookmark": false // true if the user has bookmarked the deck
+  "bookmark": false, // true if the user has bookmarked the deck
+  "createdAt": 0, // date
+  "updatedAt": 0 // date
 }
 ```
 
@@ -64,7 +66,9 @@ To get all decks that are not marked as deleted, send a GET request to ``/decks/
     "title": "string",
     "authorId": 0,
     "description": "string",
-    "id": 0
+    "id": 0,
+    "createdAt": 0, // date
+    "updatedAt": 0 // date
   }
 ]
 ```
@@ -78,7 +82,9 @@ To get all decks created by a specific user, send a GET request to ``/decks/own`
     "title": "string",
     "authorId": 0,
     "description": "string",
-    "id": 0
+    "id": 0,
+    "createdAt": 0, // date
+    "updatedAt": 0 // date
   }
 ]
 ```
@@ -92,7 +98,9 @@ Send a GET request to ``/decks/search`` with a query parameter ``title`` to rece
     "title": "string",
     "authorId": 0,
     "description": "string",
-    "id": 0
+    "id": 0,
+    "createdAt": 0, // date
+    "updatedAt": 0 // date
   }
 ]
 ```
@@ -127,6 +135,8 @@ class Deck {
   version: number;
   isDeleted: boolean;
   userBookmarks: Bookmark[];
+  createdAt: Date; // auto-generated
+  updatedAt: Date; // auto-generated
 }
 ```
 
@@ -175,6 +185,8 @@ class GetDeckDto {
       back: string;
     }[];
   bookmarked: boolean = false;
+  createdAt: Date;
+  updatedAt: Date;
 }
 ```
 
@@ -186,6 +198,8 @@ class AllDecksDto {
   title: string;
   description: string;
   authorId: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
 ```
 

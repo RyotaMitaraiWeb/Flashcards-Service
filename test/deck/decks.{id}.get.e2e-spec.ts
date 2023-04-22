@@ -58,6 +58,8 @@ describe('/decks/{id} (GET)', () => {
       .expect(HttpStatus.OK);
 
     const res: GetDeckDto = result.body;
+    const createdAt = res.createdAt;
+    const updatedAt = res.updatedAt;
     expect(res).toEqual<GetDeckDto>({
       id,
       title: deckSubmission.title,
@@ -65,6 +67,8 @@ describe('/decks/{id} (GET)', () => {
       authorId: user.id,
       flashcards: deckSubmission.flashcards,
       bookmarked: false,
+      createdAt,
+      updatedAt,
     });
   });
 
@@ -85,6 +89,9 @@ describe('/decks/{id} (GET)', () => {
       .expect(HttpStatus.OK);
 
     const deck: GetDeckDto = result.body;
+    const createdAt = deck.createdAt;
+    const updatedAt = deck.updatedAt;
+
     expect(deck).toEqual<GetDeckDto>({
       id,
       title: deckSubmission.title,
@@ -92,6 +99,8 @@ describe('/decks/{id} (GET)', () => {
       authorId: user.id,
       flashcards: deckSubmission.flashcards,
       bookmarked: true,
+      createdAt,
+      updatedAt,
     });
   });
 
@@ -115,6 +124,9 @@ describe('/decks/{id} (GET)', () => {
       .expect(HttpStatus.OK);
 
     const deck: GetDeckDto = result.body;
+    const createdAt = deck.createdAt;
+    const updatedAt = deck.updatedAt;
+
     expect(deck).toEqual<GetDeckDto>({
       id,
       title: deckSubmission.title,
@@ -122,6 +134,8 @@ describe('/decks/{id} (GET)', () => {
       authorId: user.id,
       flashcards: deckSubmission.flashcards,
       bookmarked: false,
+      createdAt,
+      updatedAt,
     });
   });
 

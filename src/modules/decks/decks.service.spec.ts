@@ -23,6 +23,9 @@ describe('DecksService', () => {
     order: 'asc'
   }
 
+  const date = new Date(Date.now());
+
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -86,6 +89,8 @@ describe('DecksService', () => {
         deck.isDeleted = false;
         deck.title = 'a';
         deck.version = 1;
+        deck.createdAt = date;
+        deck.updatedAt = date;
 
         return deck;
       });
@@ -98,6 +103,8 @@ describe('DecksService', () => {
         title: 'a',
         authorId: 1,
         bookmarked: false,
+        createdAt: date,
+        updatedAt: date,
       });
     });
 
@@ -260,6 +267,8 @@ describe('DecksService', () => {
         deck.authorId = dto.authorId;
         deck.id = dto.id;
         deck.description = dto.description;
+        deck.createdAt = date;
+        deck.updatedAt = date;
 
         const decks = [deck];
         return [decks, decks.length];
@@ -272,6 +281,8 @@ describe('DecksService', () => {
           title: dto.title,
           authorId: dto.authorId,
           description: dto.description,
+          createdAt: date,
+          updatedAt: date,
         }],
         total: 1,
       });

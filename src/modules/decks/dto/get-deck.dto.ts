@@ -11,6 +11,8 @@
         back: string;
       }
     ];
+    createdAt: Date;
+    updatedAt: Date;
 }
  * ```
  * This DTO represents an object that is returned to GET requests to ``/decks/:id``
@@ -26,4 +28,6 @@ export class GetDeckDto {
       back: string;
     }[];
   bookmarked: boolean = false;
+  createdAt: Date;
+  updatedAt: Date;
 }

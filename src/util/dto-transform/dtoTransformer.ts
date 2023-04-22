@@ -42,6 +42,8 @@ export abstract class DtoTransformer {
     dto.description = deck.description;
     dto.authorId = deck.authorId;
     dto.bookmarked = bookmarked;
+    dto.createdAt = deck.createdAt;
+    dto.updatedAt = deck.updatedAt;
 
     return dto;
   }
@@ -56,6 +58,8 @@ export abstract class DtoTransformer {
     dto.authorId = deck.authorId;
     dto.description = deck.description;
     dto.id = deck.id;
+    dto.createdAt = deck.createdAt;
+    dto.updatedAt = deck.updatedAt;
 
     return dto;
   }

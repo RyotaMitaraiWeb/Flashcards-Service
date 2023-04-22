@@ -29,6 +29,8 @@ describe('DecksController', () => {
     order: 'asc'
   }
 
+  const date = new Date(Date.now());
+
   const req: IRequest = {
     headers: {
       authorization: 'Bearer a',
@@ -277,6 +279,8 @@ describe('DecksController', () => {
       dto.description = '';
       dto.id = 1;
       dto.authorId = 1;
+      dto.createdAt = date;
+      dto.updatedAt = date;
       jest.spyOn(deckService, 'searchDecksByTitle').mockImplementation(async () => {
         const decks = DtoTransformer.ToDeckListDto([dto], 1);
         return decks;
@@ -289,6 +293,8 @@ describe('DecksController', () => {
           title: dto.title,
           description: dto.description,
           authorId: dto.authorId,
+          createdAt: date,
+          updatedAt: date,
         }],
         total: 1
       });

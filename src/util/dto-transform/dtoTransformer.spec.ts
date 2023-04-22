@@ -9,6 +9,7 @@ import { Deck } from '../../modules/decks/entities/deck.entity';
 import { DtoTransformer } from './DtoTransformer';
 
 describe('DtoTransformer', () => {
+  const date = new Date(Date.now());
   const deck = new Deck();
   deck.title = 'a';
   deck.description = 'a';
@@ -21,7 +22,8 @@ describe('DtoTransformer', () => {
   }];
   deck.id = 1;
   deck.authorId = 1;
-
+  deck.createdAt = date;
+  deck.updatedAt = date;
   const account = new Account();
   account.id = 1;
   account.username = 'a';
@@ -55,6 +57,8 @@ describe('DtoTransformer', () => {
           }
         ],
         bookmarked: false,
+        createdAt: date,
+        updatedAt: date,
       });
     });
 
@@ -72,6 +76,8 @@ describe('DtoTransformer', () => {
           }
         ],
         bookmarked: true,
+        createdAt: date,
+        updatedAt: date,
       });
     });
   });
@@ -84,6 +90,8 @@ describe('DtoTransformer', () => {
         title: deck.title,
         description: deck.description,
         authorId: deck.authorId,
+        createdAt: date,
+        updatedAt: date,
       });
     });
   });

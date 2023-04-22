@@ -15,4 +15,6 @@ export class AllDecksDto {
   title: string;
   description: string;
   authorId: number;
+  createdAt: Date;
+  updatedAt: Date;
 }

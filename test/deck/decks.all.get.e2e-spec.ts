@@ -66,14 +66,11 @@ describe('/decks/all (GET)', () => {
       .expect(HttpStatus.OK);
 
     const { decks, total } = result.body as DeckListDto;
-    expect(decks).toEqual<AllDecksDto[]>([
-      {
-        id: deck.id,
-        title: deckSubmission.title,
-        description: deckSubmission.description,
-        authorId: user.id,
-      }
-    ]);
+    const firstDeck = decks[0];
+    expect(firstDeck.id).toBe(deck.id);
+    expect(firstDeck.title).toBe(deckSubmission.title);
+    expect(firstDeck.description).toBe(deckSubmission.description);
+    expect(firstDeck.authorId).toBe(user.id);
 
     expect(total).toBe(1);
   });

@@ -64,6 +64,8 @@ export class DecksService {
         id: true,
         version: true,
         flashcards: true,
+        createdAt: true,
+        updatedAt: true,
       },
       relations: {
         flashcards: true,
@@ -136,6 +138,8 @@ export class DecksService {
         title: true,
         description: true,
         authorId: true,
+        createdAt: true,
+        updatedAt: true,
       },
       order: {
         [sortOptions.sortBy]: sortOptions.order,
@@ -169,6 +173,8 @@ export class DecksService {
         title: true,
         description: true,
         authorId: true,
+        createdAt: true,
+        updatedAt: true,
       },
       order: {
         [sortOptions.sortBy]: sortOptions.order,

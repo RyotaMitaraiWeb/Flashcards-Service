@@ -84,6 +84,8 @@ export class BookmarksService {
           description: true,
           id: true,
           authorId: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
       order: {

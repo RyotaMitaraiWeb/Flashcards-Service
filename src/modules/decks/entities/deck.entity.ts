@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { validationRules } from '../../../constants/validationRules';
 import { Account } from '../../accounts/entities/account.entity';
 import { Flashcard } from '../../flashcards/entities/flashcard.entity';
@@ -15,6 +15,8 @@ import { Bookmark } from '../../bookmarks/entities/bookmark.entity';
     public authorId: number;
     public version: number;
     public isDeleted: boolean;
+    public createdAt: Date; // auto-generated
+    public updatedAt: Date; // auto-generated
 }
  * ```
  */
@@ -61,4 +63,10 @@ export class Deck {
 
   @OneToMany(() => Bookmark, b => b.deck)
   userBookmarks: Bookmark[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
