@@ -2,12 +2,13 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpStatu
 import { BookmarksService } from './bookmarks.service';
 import { BookmarkDto } from './dto/bookmark.dto';
 import { IsLoggedInGuard } from '../../guards/isLoggedIn/isLoggedIn';
-import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IsNotCreatorGuard } from '../../guards/isNotCreator/isNotCreator';
 import { IRequest } from '../../interfaces';
 import { AllDecksDto } from '../decks/dto/all-decks-dto';
 import { DeckListDto } from '../decks/dto/deck-list-dto';
 import { sortBuilder } from '../../util/sort-builder/sort-builder';
+import { validationRules } from '../../constants/validationRules';
 
 @ApiTags('bookmarks')
 @ApiBearerAuth('jwt')
@@ -57,6 +58,25 @@ export class BookmarksController {
 
   @Get()
   @UseGuards(IsLoggedInGuard)
+  @ApiQuery({
+    name: 'sortBy',
+    description: `The category by which the decks to be sorted. Default is ${validationRules.deck.search.sortBy[0]}`,
+    enumName: 'sort categories',
+    enum: validationRules.deck.search.sortBy,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'order',
+    description: `Ascending or descending. Default is ${validationRules.deck.search.order[0]}.`,
+    enumName: 'order',
+    enum: validationRules.deck.search.order,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'page',
+    description: `Must be a numeric value. If value is non-numeric, 0, or negative, defaults to 1. Decks per page: ${validationRules.deck.search.limit}`,
+    required: false,
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Request is valid' })
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid or missing JWT in Authorization header' })
   async getSavedDecks(
