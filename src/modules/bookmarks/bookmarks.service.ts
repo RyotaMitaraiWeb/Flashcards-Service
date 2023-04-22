@@ -66,7 +66,8 @@ export class BookmarksService {
   /**
    * returns all decks that have been saved by the user and have not been marked as deleted.
    * @param userId 
-   * @returns a Promise that resolves to an array of ``AllDecksDto``
+   * @param sortOptions determines how the pages will be sorted and paginated
+   * @returns a Promise that resolves to a ``DeckListDto``
    */
   async findUserBookmarks(userId: number, sortOptions: ISorter): Promise<DeckListDto> {
     const [bookmarks, total] = await this.bookmarkRepository.findAndCount({

@@ -67,10 +67,11 @@ async function removeBookmarkOrThrow(userId: number, deckId: number): Promise<Bo
 Attempts to unsave the given deck for the given user. Throws an ``HttpForbiddenException`` if such a combination does not exist at all.
 
 ```typescript
-async function findUserBookmarks(userId: number): Promise<AllDecksDto[]>
+async function findUserBookmarks(userId: number, sorter: ISorter): Promise<AllDecksDto[]>
 ```
 
-Returns all decks that have been saved by the user and which are not marked as deleted.
+Returns all decks that have been saved by the user and which are not marked as deleted, sorted and paginated. Use the ``sortBuilder`` function in the controller to receive an object with valid sort and pagination options.
+
 ```typescript
 async function checkIfUserHasBookmarkedDeck(userId: number, deckId: number): Promise<boolean>
 ```
