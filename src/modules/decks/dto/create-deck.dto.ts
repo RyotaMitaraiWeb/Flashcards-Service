@@ -31,7 +31,7 @@ export class CreateDeckDto {
   })
   title: string;
 
-  @MaxLength(validationRules.deck.title.maxLength, {
+  @MaxLength(validationRules.deck.description.maxLength, {
     message: validationMessages.deck.description.isTooLong,
   })
   @IsString({
